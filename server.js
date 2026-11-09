@@ -1199,6 +1199,8 @@ function serveStatic(req, res, pathname) {
 // Server
 // ---------------------------------------------------------------------------
 
+const PORT = process.env.PORT || 8730;
+const HOST = '0.0.0.0';
 let portTry = 0;
 
 const server = http.createServer((req, res) => {
@@ -1253,7 +1255,7 @@ server.on('error', (err) => {
 });
 
 server.listen(PORT, HOST, () => {
-  const url = 'http://' + HOST + ':' + (PORT + portTry);
+  const url = 'http://' + HOST + ':' + PORT;
   console.log('');
   console.log('  ABYSS.IO  -  account server is up');
   console.log('  play here:  ' + url);
