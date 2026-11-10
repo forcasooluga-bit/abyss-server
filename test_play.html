@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Test Play</title>
+</head>
+<body style="margin:0; overflow:hidden;">
+  <iframe id="gameFrame" src="index.html" style="width:1280px; height:720px; border:none;"></iframe>
+  <script>
+    const iframe = document.getElementById('gameFrame');
+    iframe.onload = () => {
+      setTimeout(() => {
+        const frameDoc = iframe.contentDocument;
+        const playBtn = frameDoc.getElementById('playBtn');
+        if (playBtn) playBtn.click();
+        
+        setTimeout(() => {
+          const G = iframe.contentWindow.ABYSS_GAME || iframe.contentWindow.G;
+          // Position player near surface to capture the sky, sun, clouds and surface waves
+          if (iframe.contentWindow.ABYSS) {
+            // Find game state
+            const win = iframe.contentWindow;
+            // Let's check G
+          }
+        }, 500);
+      }, 500);
+    };
+  </script>
+</body>
+</html>

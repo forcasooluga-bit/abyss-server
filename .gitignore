@@ -1,0 +1,12 @@
+# Secrets - never commit these
+server/.env
+.env
+
+# Private player database
+server/data/
+*.db
+*.db-wal
+*.db-shm
+
+# The vendored Argon2 verifier in server/node_modules/hash-wasm is part of
+# the source (no secrets) and must stay available to the Node server.

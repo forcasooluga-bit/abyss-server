@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#021018">
+<title>ABYSS.IO — Underwater Evolution</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+  <canvas id="game" aria-label="ABYSS.IO ocean game"></canvas>
+  <div class="vignette" aria-hidden="true"></div>
+  <div id="damageFlash" aria-hidden="true"></div>
+  <div id="dangerVignette" aria-hidden="true"></div>
+  <div id="cursor" aria-hidden="true"></div>
+
+  <div id="hud">
+    <section id="statusPanel" class="panel">
+      <div class="status-top">
+        <div class="portrait-wrap">
+          <canvas id="portrait" width="176" height="128" aria-hidden="true"></canvas>
+        </div>
+        <div class="status-meta">
+          <div class="eyebrow">
+            <span id="stageTag" class="stage-tag">STAGE 1</span>
+            <span id="fishRole" class="role">Reef Sprout</span>
+          </div>
+          <h2 id="fishName">Tiny Blue Fish</h2>
+          <div class="vitals">
+            <div class="vital">
+              <div class="vital-head">
+                <span class="vital-label">HEALTH</span>
+                <span class="vital-value" id="healthText">100</span>
+              </div>
+              <div class="bar health"><i id="healthFill"></i></div>
+            </div>
+            <div class="vital">
+              <div class="vital-head">
+                <span class="vital-label">HUNGER</span>
+                <span class="vital-value" id="hungerText">100</span>
+              </div>
+              <div class="bar hunger"><i id="hungerFill"></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="xp-block">
+        <div class="xp-head">
+          <span>EVOLUTION XP</span>
+          <span id="xpText">0 / 80</span>
+        </div>
+        <div class="bar xp"><i id="xpFill"></i></div>
+        <div class="pips" id="pips"></div>
+      </div>
+    </section>
+
+    <div id="rightHud">
+      <section class="panel stat-panel">
+        <div class="stat"><span class="stat-label">SCORE</span><span class="stat-value" id="scoreText">0</span></div>
+        <div class="stat"><span class="stat-label">TIME</span><span class="stat-value" id="timeText">0:00</span></div>
+        <div class="stat"><span class="stat-label">EATEN</span><span class="stat-value" id="eatenText">0</span></div>
+      </section>
+      <section class="panel board-panel">
+        <div class="panel-title">TOP OF THE REEF</div>
+        <ol id="leaderboard"></ol>
+      </section>
+      <div class="panel minimap-wrap">
+        <canvas id="minimap" width="168" height="120" aria-hidden="true"></canvas>
+      </div>
+    </div>
+
+    <button id="questChip" class="quest-chip" type="button" title="Missions and daily chests">
+      <span class="quest-chip-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.2 6.4h11.4v11.2H4.2z"/><path d="M15.6 9.6h4.2l-2.4 3.4 2.4 3.4h-4.2"/><path d="M7 9.8h5.2M7 12.6h4"/></svg></span>
+      <span class="quest-chip-label">MISSIONS</span>
+      <span class="quest-chip-crystal" id="chipCrystals">0</span>
+      <span class="quest-chip-badge" id="questBadge" hidden>0</span>
+    </button>
+
+    <div id="abilityDock">
+      <button id="abilityBtn" type="button" aria-label="Use special ability">
+        <span class="ability-svg" id="abilityIcon"></span>
+        <span class="cd-overlay" id="cdOverlay"></span>
+        <span class="cd-text" id="cdText"></span>
+      </button>
+      <div class="ability-info">
+        <span class="ability-label">ABILITY</span>
+        <span id="abilityName">Bubble Boost</span>
+        <span class="ability-key">SPACE</span>
+      </div>
+    </div>
+
+    <div id="controlsHint">MOVE <b>MOUSE</b> / <b>WASD</b> <span>·</span> ABILITY <b>SPACE</b> <span>·</span> PAUSE <b>P</b> <span>·</span> SOUND <b>M</b></div>
+    <div id="zoneChip"><b id="zoneName">Sunlit Shallows</b><span id="poiCount"></span></div>
+    <div id="starvationWarn">STARVING — FIND FOOD</div>
+    <div id="eventBanner">
+      <span id="eventBannerTitle"></span>
+      <span id="eventBannerSub"></span>
+    </div>
+    <div id="toast"></div>
+  </div>
+
+  <div id="menu" class="overlay">
+    <div class="menu-shell">
+      <header class="menu-head">
+        <div class="brand">ABYSS<span class="brand-io">.IO</span></div>
+        <p class="tagline">Eat. Evolve. Rule the reef.</p>
+        <p class="blurb">Start as a tiny blue fish. Graze on glowing plankton, dodge the big ones, and climb five original forms on your way to becoming the Apex of the reef.</p>
+      </header>
+      <div id="evolutionPreview" class="evo-preview"></div>
+      <div class="name-card">
+        <label class="panel-title" for="playerNameInput">YOUR NAME</label>
+        <input id="playerNameInput" class="name-input" type="text" maxlength="16" placeholder="Type your name" autocomplete="off" spellcheck="false">
+        <span class="name-hint" id="nameHint">Swims above your fish · you can change it any time</span>
+      </div>
+      <section class="account-card" id="accountCard" aria-label="Account">
+        <div class="account-head">
+          <span class="panel-title">ACCOUNT</span>
+          <span class="account-mode" id="accountMode">LOCAL TEST MODE</span>
+        </div>
+        <div class="account-guest" id="accountGuest">
+          <p class="account-note">Playing as a guest. Your run is saved on this device only.</p>
+          <div class="account-actions">
+            <button id="loginBtn" class="btn ghost" type="button">LOG IN</button>
+            <button id="signupBtn" class="btn ghost" type="button">SIGN UP</button>
+          </div>
+        </div>
+        <div class="account-user" id="accountUser" hidden>
+          <div class="account-line">
+            <span class="account-avatar" id="accountAvatar">?</span>
+            <span class="account-name" id="accountName">-</span>
+            <span class="account-crystals" id="accountCrystals" title="Crystals">0</span>
+          </div>
+          <p class="account-note">Local test account - kept in this browser only. It is not registered with any online service yet.</p>
+          <div class="account-actions">
+            <button id="profileBtn" class="btn ghost" type="button">PROFILE</button>
+            <button id="logoutBtn" class="btn ghost" type="button">LOG OUT</button>
+          </div>
+          <div class="account-profile" id="accountProfile" hidden>
+            <div class="profile-grid">
+              <div><span>CRYSTALS</span><b id="pfCrystals">0</b></div>
+              <div><span>TOTAL XP</span><b id="pfXp">0</b></div>
+              <div><span>EVOLUTIONS</span><b id="pfEvolutions">1</b></div>
+              <div><span>CURRENT FORM</span><b id="pfCurrent">Tiny Blue Fish</b></div>
+              <div><span>SKINS</span><b id="pfSkins">0</b></div>
+              <div><span>PETS</span><b id="pfPets">0</b></div>
+              <div><span>RUNS</span><b id="pfRuns">0</b></div>
+              <div><span>BEST</span><b id="pfBest">0 XP</b></div>
+            </div>
+            <p class="profile-sync" id="pfSync">Cross-device sync is not live yet. When the account service ships, signing in with this username on another PC restores the crystals, evolutions, skins, pets and XP held here.</p>
+          </div>
+        </div>
+      </section>
+      <div class="menu-actions">
+        <button id="playBtn" class="btn primary" type="button">DIVE IN</button>
+        <button id="questBtn" class="btn ghost" type="button">MISSIONS</button>
+        <button id="soundBtn" class="btn ghost" type="button">SOUND: ON</button>
+      </div>
+      <div class="menu-meta">
+        <div class="controls-card">
+          <div class="panel-title">HOW TO PLAY</div>
+          <ul>
+            <li><b>Mouse / WASD</b> — swim and steer (arrows work too)</li>
+            <li><b>Space</b> — unleash your species ability</li>
+            <li>Eat anything smaller than you; flee anything bigger</li>
+            <li>Fill the XP bar to evolve automatically</li>
+          </ul>
+        </div>
+        <div class="best-card">
+          <div class="panel-title">YOUR BEST RUN</div>
+          <div id="bestValue" class="best-value">No runs yet — the reef awaits.</div>
+        </div>
+      </div>
+      <footer class="menu-foot">Original fish · Original art · Runs in your browser · No install</footer>
+    </div>
+  </div>
+
+  <div id="pauseMenu" class="overlay hidden">
+    <div class="modal">
+      <div class="modal-eyebrow">TAKING A BREATH</div>
+      <h2 class="modal-title">PAUSED</h2>
+      <p class="modal-sub">The current is still. Your school waits for you.</p>
+      <div class="name-card modal-name">
+        <label class="panel-title" for="pauseNameInput">YOUR NAME</label>
+        <input id="pauseNameInput" class="name-input" type="text" maxlength="16" placeholder="Type your name" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="modal-actions">
+        <button id="resumeBtn" class="btn primary" type="button">RESUME DIVE</button>
+        <button id="restartBtn" class="btn ghost" type="button">RESTART RUN</button>
+        <button id="pauseSoundBtn" class="btn ghost" type="button">SOUND: ON</button>
+        <button id="menuBtn" class="btn ghost" type="button">MAIN MENU</button>
+      </div>
+      <div class="modal-hint">Press P to jump back in</div>
+    </div>
+  </div>
+
+  <div id="deathMenu" class="overlay hidden">
+    <div class="modal">
+      <div class="modal-eyebrow" id="deathEyebrow">THE DEEP CLAIMS ALL</div>
+      <h2 class="modal-title">SWEPT AWAY</h2>
+      <p class="modal-sub" id="deathSub">A bigger shadow got the better of you.</p>
+      <div class="death-stats">
+        <div class="death-stat"><span>FINAL FORM</span><b id="deathStage">Tiny Blue Fish</b></div>
+        <div class="death-stat"><span>SCORE</span><b id="deathScore">0</b></div>
+        <div class="death-stat"><span>FISH EATEN</span><b id="deathEaten">0</b></div>
+        <div class="death-stat"><span>SURVIVED</span><b id="deathTime">0:00</b></div>
+      </div>
+      <div class="modal-actions">
+        <button id="againBtn" class="btn primary" type="button">DIVE AGAIN</button>
+        <button id="deathMenuBtn" class="btn ghost" type="button">MAIN MENU</button>
+      </div>
+      <div class="modal-hint" id="deathBest">Best run — 0 XP</div>
+    </div>
+  </div>
+
+  <div id="questPanel" class="overlay quest-overlay hidden">
+    <div class="quest-frame" role="dialog" aria-modal="true" aria-labelledby="questHeading">
+      <div class="quest-tabs" role="tablist">
+        <button class="quest-tab active" type="button" role="tab" data-tab="missions">MISSIONS</button>
+        <button class="quest-tab" type="button" role="tab" data-tab="map">MAP</button>
+        <button class="quest-tab" type="button" role="tab" data-tab="options">OPTIONS</button>
+        <button class="quest-close" id="questClose" type="button" aria-label="Close missions">&times;</button>
+      </div>
+
+      <div class="quest-body">
+        <section class="quest-pane active" id="questPaneMissions">
+          <h2 class="quest-heading" id="questHeading">TODAY&rsquo;S MISSIONS</h2>
+          <p class="quest-sub" id="questSub">Three goals, refreshed at midnight. Collect the reward to bank crystals.</p>
+          <div class="quest-cards" id="questCards"></div>
+          <div class="chest-strip">
+            <div class="chest-head">
+              <span class="chest-title">DAILY CHESTS</span>
+              <span class="chest-timer">TIME LEFT <b id="chestTimer">00:00:00</b></span>
+              <span class="chest-count" id="chestCount">0/5</span>
+            </div>
+            <div class="chest-row" id="chestRow"></div>
+          </div>
+        </section>
+
+        <section class="quest-pane" id="questPaneMap">
+          <h2 class="quest-heading">THE REEF AT A GLANCE</h2>
+          <p class="quest-sub">Every depth band, the sites you have charted and the missions waiting down there.</p>
+          <canvas id="questMap" width="640" height="300" aria-label="World map"></canvas>
+          <ul class="zone-list" id="zoneList"></ul>
+        </section>
+
+        <section class="quest-pane" id="questPaneOptions">
+          <h2 class="quest-heading">OPTIONS</h2>
+          <p class="quest-sub">Everything here is saved on this device, or on your local test account when you are signed in.</p>
+          <div class="opt-row">
+            <span class="opt-label">SOUND</span>
+            <button class="btn ghost opt-btn" id="optSound" type="button">ON</button>
+          </div>
+          <div class="opt-row">
+            <span class="opt-label">MISSION ALERTS</span>
+            <button class="btn ghost opt-btn" id="optAlerts" type="button">ON</button>
+          </div>
+          <div class="opt-row">
+            <span class="opt-label">PANEL MOTION</span>
+            <button class="btn ghost opt-btn" id="optMotion" type="button">ON</button>
+          </div>
+          <div class="opt-row">
+            <span class="opt-label">ACCOUNT</span>
+            <span class="opt-value" id="optAccount">Guest &mdash; this device only</span>
+          </div>
+          <div class="opt-stats" id="optStats"></div>
+          <div class="opt-row">
+            <span class="opt-label">MISSION RESET</span>
+            <span class="opt-value">Every 12 hours &mdash; missions cannot be rerolled.</span>
+          </div>
+        </section>
+      </div>
+
+      <div class="quest-foot">
+        <span class="quest-foot-note" id="questNote">Rewards are held locally. Online vaults arrive with the account service.</span>
+        <button class="quest-go" id="questGo" type="button" aria-label="Back to the reef">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4.6l10.4 7.4L7 19.4z"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="authModal" class="overlay auth-overlay hidden">
+    <div class="auth-card" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+      <button class="auth-close" id="authClose" type="button" aria-label="Close">&times;</button>
+      <div class="auth-eyebrow">ABYSS.IO ACCOUNT</div>
+      <div class="auth-tabs" role="tablist">
+        <button class="auth-tab" id="tabLogin" type="button" role="tab">LOG IN</button>
+        <button class="auth-tab" id="tabSignup" type="button" role="tab">SIGN UP</button>
+        <span class="auth-tab-thumb" id="authTabThumb" aria-hidden="true"></span>
+      </div>
+
+      <form class="auth-pane" id="paneLogin" novalidate autocomplete="on">
+        <h2 class="auth-title" id="authTitle">Welcome back</h2>
+        <p class="auth-sub">Sign in to attach this device&rsquo;s progress to an account.</p>
+        <label class="field">
+          <span class="field-label">USERNAME</span>
+          <input id="loginUser" class="field-input" type="text" maxlength="16" autocomplete="username" spellcheck="false" placeholder="reef_raptor">
+          <em class="field-error" id="loginUserErr"></em>
+        </label>
+        <label class="field">
+          <span class="field-label">PASSWORD</span>
+          <span class="field-wrap">
+            <input id="loginPass" class="field-input" type="password" autocomplete="current-password" placeholder="Your password">
+            <button class="field-eye" data-eye="loginPass" type="button">SHOW</button>
+          </span>
+          <em class="field-error" id="loginPassErr"></em>
+        </label>
+        <p class="auth-notice">Local test account. Your password is never stored &mdash; only a random salt and a stretched digest stay in this browser, and nothing is sent anywhere. Online registration is not live yet.</p>
+        <button class="btn primary auth-submit" id="loginSubmit" type="submit">LOG IN</button>
+        <button class="auth-link" data-goto="signup" type="button">No account yet? Create one</button>
+      </form>
+
+      <form class="auth-pane" id="paneSignup" novalidate autocomplete="on">
+        <h2 class="auth-title">Create an account</h2>
+        <p class="auth-sub">Reserves your name for the day cross-device sync arrives.</p>
+        <label class="field">
+          <span class="field-label">USERNAME</span>
+          <input id="signupUser" class="field-input" type="text" maxlength="16" autocomplete="username" spellcheck="false" placeholder="3-16 letters, numbers or _">
+          <em class="field-error" id="signupUserErr"></em>
+        </label>
+        <label class="field">
+          <span class="field-label">PASSWORD</span>
+          <span class="field-wrap">
+            <input id="signupPass" class="field-input" type="password" autocomplete="new-password" placeholder="8+ characters, letter + number">
+            <button class="field-eye" data-eye="signupPass" type="button">SHOW</button>
+          </span>
+          <span class="strength" id="signupStrength" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+          <em class="field-error" id="signupPassErr"></em>
+        </label>
+        <label class="field">
+          <span class="field-label">CONFIRM PASSWORD</span>
+          <span class="field-wrap">
+            <input id="signupConfirm" class="field-input" type="password" autocomplete="new-password" placeholder="Type it again">
+            <button class="field-eye" data-eye="signupConfirm" type="button">SHOW</button>
+          </span>
+          <em class="field-error" id="signupConfirmErr"></em>
+        </label>
+        <p class="auth-notice">This is a temporary local test account on this PC. It is not a secure online registration, and it can be lost if the browser storage is cleared.</p>
+        <button class="btn primary auth-submit" id="signupSubmit" type="submit">SIGN UP</button>
+        <button class="auth-link" data-goto="login" type="button">Already have an account? Log in</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var q = [];
+  window.__pump = function (n, ms) {
+    var t = performance.now();
+    for (var i = 0; i < n; i++) {
+      var list = q.splice(0);
+      t += (ms || 16.7);
+      for (var j = 0; j < list.length; j++) {
+        try { list[j](t); } catch (e) {
+          window.__err = (window.__err || []).concat(String(e && e.stack || e));
+        }
+      }
+    }
+    return q.length;
+  };
+  window.requestAnimationFrame = function (cb) { q.push(cb); return q.length; };
+  window.cancelAnimationFrame = function () {};
+})();
+</script>
+<script src="js/config.js"></script>
+<script src="js/account.js"></script>
+<script src="js/quests.js"></script>
+<script src="js/audio.js"></script>
+<script>
+(function () {
+  var q = [];
+  window.__pump = function (n, ms) {
+    var t = performance.now();
+    for (var i = 0; i < n; i++) {
+      var list = q.splice(0);
+      t += (ms || 16.7);
+      for (var j = 0; j < list.length; j++) {
+        try { list[j](t); } catch (e) {
+          window.__err = (window.__err || []).concat(String(e && e.stack || e));
+        }
+      }
+    }
+    return q.length;
+  };
+  window.requestAnimationFrame = function (cb) { q.push(cb); return q.length; };
+  window.cancelAnimationFrame = function () {};
+})();
+</script>
+<script src="js/fish.js"></script>
+<script src="js/world.js"></script>
+<script src="js/account-ui.js"></script>
+<script src="js/quests-ui.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>
