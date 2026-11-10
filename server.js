@@ -2,6 +2,7 @@ const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
 
+// Récupération obligatoire du port attribué par Railway
 const PORT = process.env.PORT || 8080;
 const HOST = '0.0.0.0';
 
@@ -12,7 +13,6 @@ const MIME_TYPES = {
   '.json': 'application/json; charset=utf-8',
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
-  '.gif': 'image/gif',
   '.svg': 'image/svg+xml',
   '.ico': 'image/x-icon'
 };
@@ -29,14 +29,12 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // Cherche le fichier dans le dossier public (ou à la racine si tu preferes)
-  let filePath = path.join(__dirname, 'public', pathname === '/' ? 'index.html' : pathname);
-  
-  // Sécurité basique pour rester dans le dossier
-  if (!filePath.startsWith(__dirname)) {
-    res.writeHead(403, { 'Content-Type': 'text/plain' });
-    res.end('Forbidden');
-    return;
+  let filePath = path.join(__dirname, pathname === '/' ? 'index.html' : pathname);
+  if (fs.existsSync(path.join(__dirname, 'public'))) {
+    const publicPath = path.join(__dirname, 'public', pathname === '/' ? 'index.html' : pathname);
+    if (fs.existsSync(publicPath)) {
+      filePath = publicPath;
+    }
   }
 
   fs.stat(filePath, (err, stats) => {
@@ -50,7 +48,6 @@ const server = http.createServer((req, res) => {
     const contentType = MIME_TYPES[ext] || 'application/octet-stream';
 
     res.writeHead(200, { 'Content-Type': contentType });
-    
     if (req.method === 'HEAD') {
       res.end();
       return;
@@ -61,5 +58,5 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(PORT, HOST, () => {
-  console.log(`ABYSS.IO server is up on http://${HOST}:${PORT}`);
+  console.log(`ABYSS.IO server listening on ${HOST}:${PORT}`);
 });
