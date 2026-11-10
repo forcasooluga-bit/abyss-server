@@ -1198,7 +1198,8 @@ function serveStatic(req, res, pathname) {
 // ---------------------------------------------------------------------------
 // Server
 // ---------------------------------------------------------------------------
-
+const PORT = process.env.PORT || 8730;
+const HOST = '0.0.0.0'; // Forcé à 0.0.0.0 pour Railway
 const server = http.createServer((req, res) => {
   // Keep the path encoded here; serveStatic/serveAdmin decode exactly once.
   const pathname = (req.url || '/').split('?')[0];
