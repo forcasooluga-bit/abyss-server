@@ -182,10 +182,12 @@ function resolvePlayerCombat() {
   const now = Date.now();
   for (let i = 0; i < players.length; i++) {
     const attacker = players[i];
+    if (now - attacker.lastUpdate > 500) continue;
     const attackRadius = STAGE_RADII[attacker.stageIndex] || 13;
     for (let j = 0; j < players.length; j++) {
       if (i === j) continue;
       const target = players[j];
+      if (now - target.lastUpdate > 500) continue;
       const targetRadius = STAGE_RADII[target.stageIndex] || 13;
       if (attackRadius < targetRadius * 0.86) continue;
 
