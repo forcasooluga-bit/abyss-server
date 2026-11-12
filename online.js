@@ -96,6 +96,6 @@
   };
 
   connect();
-  window.setInterval(sendState, 100);
+  window.setInterval(sendState, 33);
   window.addEventListener('online', connect);
 })();
