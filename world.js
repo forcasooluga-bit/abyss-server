@@ -2724,37 +2724,6 @@
           ctx.stroke();
           ctx.restore();
         }
-      } else if (zone.id === 'trench') {
-        // Frozen Abyss: cold blue cast and sparse drifting ice flecks.
-        ctx.fillStyle = 'rgba(130, 205, 255, 0.075)';
-        ctx.fillRect(0, underTop, w, underH);
-        ctx.fillStyle = 'rgba(190, 232, 255, 0.12)';
-        for (let i = 0; i < count; i++) {
-          const x = ((i * 173 + cam.x * (0.08 + (i % 3) * 0.025)) % (w + 80) + w + 80) % (w + 80) - 40;
-          const y = underTop + ((i * 97 + time * (5 + i % 4) + phase * 80) % Math.max(1, underH));
-          const r = 2 + (i % 3) * 1.4;
-          ctx.beginPath();
-          ctx.moveTo(x, y - r * 1.8);
-          ctx.lineTo(x + r, y);
-          ctx.lineTo(x, y + r * 1.8);
-          ctx.lineTo(x - r, y);
-          ctx.closePath();
-          ctx.fill();
-        }
-        ctx.globalAlpha = 0.18;
-        ctx.fillStyle = '#b7eaff';
-        ctx.beginPath();
-        ctx.moveTo(0, underTop);
-        ctx.lineTo(w * 0.12, underTop);
-        ctx.lineTo(0, underTop + h * 0.2);
-        ctx.closePath();
-        ctx.fill();
-        ctx.beginPath();
-        ctx.moveTo(w, underTop);
-        ctx.lineTo(w * 0.88, underTop);
-        ctx.lineTo(w, underTop + h * 0.16);
-        ctx.closePath();
-        ctx.fill();
       } else if (zone.id === 'vents') {
         // Volcanic Trench: a restrained ember glow near the lower edge.
         ctx.fillStyle = 'rgba(111, 30, 25, 0.10)';
@@ -2815,7 +2784,6 @@
     drawBiomeLandmarks(ctx, view, time, lowDetail) {
       const scenes = [
         { kind: 'coral', x: WORLD.w * 0.18, y: WORLD.h * 0.285, w: 1500, h: 720 },
-        { kind: 'ice', x: WORLD.w * 0.48, y: WORLD.h * 0.585, w: 1650, h: 900 },
         { kind: 'bio', x: WORLD.w * 0.76, y: WORLD.h * 0.835, w: 1700, h: 820 },
         { kind: 'lava', x: WORLD.w * 0.88, y: WORLD.h * 0.958, w: 1850, h: 560 }
       ];
@@ -2852,24 +2820,6 @@
               ctx.fillStyle = i % 2 ? 'rgba(255,205,160,.8)' : 'rgba(125,245,225,.75)';
               ctx.beginPath(); ctx.arc(x, y, 5 + (i % 4), 0, TAU); ctx.fill();
             }
-          }
-        } else if (b.kind === 'ice') {
-          // Jagged blue ice shelves and hanging crystal teeth.
-          ctx.fillStyle = 'rgba(1, 18, 38, 0.5)';
-          ctx.beginPath(); ctx.ellipse(0, 350, 780, 150, 0, 0, TAU); ctx.fill();
-          const ice = ctx.createLinearGradient(-300, -450, 250, 420);
-          ice.addColorStop(0, '#d8f8ff'); ice.addColorStop(0.28, '#79c8e8'); ice.addColorStop(0.7, '#28658d'); ice.addColorStop(1, '#102d52');
-          ctx.fillStyle = ice;
-          ctx.beginPath(); ctx.moveTo(-760, 340); ctx.lineTo(-690, 90); ctx.lineTo(-560, -30); ctx.lineTo(-430, 120); ctx.lineTo(-280, -350); ctx.lineTo(-120, 55); ctx.lineTo(30, -210); ctx.lineTo(180, 90); ctx.lineTo(360, -390); ctx.lineTo(510, 80); ctx.lineTo(690, -40); ctx.lineTo(780, 340); ctx.closePath(); ctx.fill();
-          ctx.strokeStyle = 'rgba(222,250,255,.72)'; ctx.lineWidth = 9;
-          ctx.beginPath(); ctx.moveTo(-680, 90); ctx.lineTo(-560, -30); ctx.lineTo(-430, 120); ctx.lineTo(-280, -350); ctx.lineTo(-120, 55); ctx.lineTo(30, -210); ctx.lineTo(180, 90); ctx.lineTo(360, -390); ctx.lineTo(510, 80); ctx.lineTo(690, -40); ctx.stroke();
-          ctx.fillStyle = 'rgba(182,235,255,.7)';
-          for (let i = 0; i < 8; i++) {
-            const x = -620 + i * 175, len = 100 + (i % 3) * 55;
-            ctx.beginPath(); ctx.moveTo(x, -250); ctx.lineTo(x + 35, -250 + len); ctx.lineTo(x + 70, -250); ctx.closePath(); ctx.fill();
-          }
-          if (!lowDetail) {
-            ctx.globalAlpha = 0.35; ctx.drawImage(glowSprite('#8bdfff'), -720, -420, 1440, 900); ctx.globalAlpha = 1;
           }
         } else if (b.kind === 'bio') {
           // Giant glowing mushroom-like sea plants, with layered caps and stems.

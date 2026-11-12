@@ -5,6 +5,7 @@
   const W = A.WORLD;
   const TAU = A.TAU;
   const FOOD_TARGET = A.FOOD_TARGET;
+  const SURFACE_WORLD_Y = 220;
 
   const $ = function (id) { return document.getElementById(id); };
 
@@ -423,6 +424,9 @@
       radius: stage.radius,
       baseRadius: stage.radius,
       speedSmooth: 0,
+      airborne: false,
+      airVx: 0,
+      airVy: 0,
       swim: 0.3,
       phase: A.rand(0, TAU),
       xp: 0,
@@ -1322,10 +1326,10 @@
     const kb = keyboardDir();
     let dist = 0;
     const before = p.angle;
-    if (kb) {
+    if (!p.airborne && kb) {
       p.targetAngle = Math.atan2(kb.y, kb.x);
       p.angle = A.angleDamp(p.angle, p.targetAngle, 10, dt);
-    } else if (G.mouse.active) {
+    } else if (!p.airborne && G.mouse.active) {
       const target = pointerWorld();
       const dx = target.x - p.x;
       const dy = target.y - p.y;
@@ -1338,29 +1342,66 @@
 
     const mult = charging ? A.TRIDENT_CHARGE.speed : (active && ab.speed ? ab.speed : 1);
     let desired = 0;
-    if (charging) {
-      // The charge is a commitment: the animal keeps driving along its nose
-      // even with no key held, so the ram always covers the same water.
-      desired = p.speed * mult;
-    } else if (kb) {
-      desired = p.speed * mult;
-    } else if (G.mouse.active && dist > 16) {
-      desired = p.speed * mult * A.clamp((dist - 12) / 130, 0, 1);
-    }
-    p.speedSmooth = A.damp(p.speedSmooth, desired, charging ? 16 : (kb ? 9.5 : 7), dt);
+    if (!p.airborne) {
+      if (charging) {
+        // The charge is a commitment: the animal keeps driving along its nose
+        // even with no key held, so the ram always covers the same water.
+        desired = p.speed * mult;
+      } else if (kb) {
+        desired = p.speed * mult;
+      } else if (G.mouse.active && dist > 16) {
+        desired = p.speed * mult * A.clamp((dist - 12) / 130, 0, 1);
+      }
+      p.speedSmooth = A.damp(p.speedSmooth, desired, charging ? 16 : (kb ? 9.5 : 7), dt);
 
-    p.x += Math.cos(p.angle) * p.speedSmooth * dt + p.knockX * dt;
-    p.y += Math.sin(p.angle) * p.speedSmooth * dt + p.knockY * dt;
-    // Missions count the water you actually propelled through, not the shove
-    // you got from a bigger fish.
-    if (A.Quests) A.Quests.swim(Math.abs(p.speedSmooth) * dt);
+      const previousY = p.y;
+      p.x += Math.cos(p.angle) * p.speedSmooth * dt + p.knockX * dt;
+      p.y += Math.sin(p.angle) * p.speedSmooth * dt + p.knockY * dt;
+
+      // Leaving the water at speed becomes a physical breach: momentum carries
+      // the animal upward, then gravity takes over until it re-enters the sea.
+      if (previousY >= SURFACE_WORLD_Y + p.radius * 0.15 &&
+          p.y < SURFACE_WORLD_Y - p.radius * 0.08 &&
+          p.speedSmooth > Math.max(70, p.speed * 0.38) &&
+          Math.sin(p.angle) < -0.32) {
+        p.airborne = true;
+        p.airVx = Math.cos(p.angle) * p.speedSmooth * 0.82;
+        p.airVy = Math.min(-150, Math.sin(p.angle) * p.speedSmooth * 2.65);
+        p.y = SURFACE_WORLD_Y - p.radius * 0.12;
+      }
+
+      // Missions count the water you actually propelled through, not the shove
+      // you got from a bigger fish. A breach is airborne time, not swimming.
+      if (A.Quests) A.Quests.swim(Math.abs(p.speedSmooth) * dt);
+      if (p.airborne) {
+        p.x += p.airVx * dt;
+        p.y += p.airVy * dt;
+      }
+    } else {
+      // Air has no water drag: keep the launch momentum and let gravity pull
+      // the animal through a natural arc. Steering resumes on splashdown.
+      p.airVy += 900 * dt;
+      p.airVx *= Math.exp(-0.22 * dt);
+      p.x += p.airVx * dt;
+      p.y += p.airVy * dt;
+      p.angle = Math.atan2(p.airVy, p.airVx);
+      if (p.airVy > 0 && p.y >= SURFACE_WORLD_Y + p.radius * 0.24) {
+        p.y = SURFACE_WORLD_Y + p.radius * 0.24;
+        p.airborne = false;
+        p.speedSmooth = 0;
+        spawnSurfaceSplash(p.x, SURFACE_WORLD_Y, p.radius);
+      }
+    }
+
     p.knockX = A.damp(p.knockX, 0, 7, dt);
     p.knockY = A.damp(p.knockY, 0, 7, dt);
     p.x = A.clamp(p.x, W.margin, W.w - W.margin);
-    p.y = A.clamp(p.y, W.margin, ceilingAt(p.x, p.radius));
+    p.y = p.airborne
+      ? A.clamp(p.y, 24, W.h - W.margin)
+      : A.clamp(p.y, W.margin, ceilingAt(p.x, p.radius));
 
-    p.swim = A.clamp(p.speedSmooth / Math.max(1, p.speed), 0.22, 1.4);
-    p.phase += dt * (3.2 + 6.5 * p.swim);
+    p.swim = p.airborne ? 0.06 : A.clamp(p.speedSmooth / Math.max(1, p.speed), 0.22, 1.4);
+    p.phase += dt * (p.airborne ? 1.6 : (3.2 + 6.5 * p.swim));
     // A sawshark at full drive gets a rush of water off the flank. Throttled
     // inside the sound, so holding the direction key does not stack into a roar.
     if (p.art === 'sawshark' && p.speedSmooth > p.speed * 0.82) {
@@ -3620,6 +3661,30 @@
     const cap = G.quality < 0.9 ? 130 : 240;
     if (G.particles.length >= cap) G.particles.shift();
     G.particles.push(p);
+  }
+
+  function spawnSurfaceSplash(x, y, radius) {
+    const scale = A.clamp(radius / 46, 0.5, 2.25);
+    spawnRing(x, y, 'rgba(226,250,255,0.92)', radius * 0.72, radius * 9.5, 0.52, Math.max(2, radius * 0.075));
+    spawnRing(x, y, 'rgba(92,205,232,0.72)', radius * 0.9, radius * 12, 0.68, Math.max(1.5, radius * 0.045));
+    const droplets = Math.min(34, Math.round(17 * scale));
+    for (let i = 0; i < droplets; i++) {
+      const angle = -Math.PI + A.rand(0.08, 0.92) * Math.PI;
+      const speed = A.rand(105, 255) * scale;
+      const life = A.rand(0.34, 0.72);
+      addParticle({
+        type: 'spark',
+        x: x + A.rand(-radius * 0.45, radius * 0.45),
+        y: y + A.rand(-2, 5),
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - A.rand(20, 85) * scale,
+        size: A.rand(2.2, 5.2) * scale,
+        color: i % 3 ? '#d8f8ff' : '#75dff4',
+        life: life,
+        maxLife: life
+      });
+    }
+    A.Audio.splash(radius);
   }
 
   function spawnSparks(x, y, colors, count, speed, size) {
