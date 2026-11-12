@@ -4973,7 +4973,21 @@
     gridBuild(foodGrid, G.foods);
   }
 
+  function updateRemotePlayers(dt) {
+    const blend = 1 - Math.exp(-14 * dt);
+    for (let i = 0; i < G.remotePlayers.length; i++) {
+      const p = G.remotePlayers[i];
+      p.x += (p.targetX - p.x) * blend;
+      p.y += (p.targetY - p.y) * blend;
+      let angleDelta = p.targetAngle - p.angle;
+      angleDelta = Math.atan2(Math.sin(angleDelta), Math.cos(angleDelta));
+      p.angle += angleDelta * blend;
+      p.swim = Math.min(1, p.swim + dt * 2);
+    }
+  }
+
   function update(dt) {
+    updateRemotePlayers(dt);
     // The secret arena owns its own simulation while the player is inside; the
     // reef keeps every fish, food and timer exactly where it was left.
     if (A.Monsters && A.Monsters.active()) {
@@ -5114,38 +5128,63 @@
       };
     },
     setRemotePlayers: function (players) {
-      G.remotePlayers.length = 0;
-      if (!Array.isArray(players)) return;
+      if (!Array.isArray(players)) players = [];
+      const previous = new Map();
+      for (let i = 0; i < G.remotePlayers.length; i++) {
+        previous.set(G.remotePlayers[i].id, G.remotePlayers[i]);
+      }
+      const next = [];
       for (let i = 0; i < players.length; i++) {
         const entry = players[i];
         if (!entry || !entry.id) continue;
+        const id = String(entry.id);
         const stageIndex = A.clamp(entry.stageIndex | 0, 0, A.STAGES.length - 1);
         const stage = A.STAGES[stageIndex];
         if (!stage) continue;
-        G.remotePlayers.push({
-          id: String(entry.id),
-          remote: true,
-          isPlayer: true,
-          dead: false,
-          name: String(entry.name || 'Guest').slice(0, 16),
-          x: A.clamp(Number(entry.x) || 0, 0, W.w),
-          y: A.clamp(Number(entry.y) || 0, 0, W.h),
-          angle: Number(entry.angle) || 0,
-          targetAngle: Number(entry.angle) || 0,
-          stageIndex: stageIndex,
-          art: stage.art,
-          colors: stage.palette,
-          speed: stage.speed,
-          radius: stage.radius,
-          baseRadius: stage.radius,
-          swim: 0.8,
-          phase: G.sim * 3,
-          xp: Math.max(0, Number(entry.xp) || 0),
-          health: 100,
-          maxHealth: 100,
-          weapon: null
-        });
+        const x = A.clamp(Number(entry.x) || 0, 0, W.w);
+        const y = A.clamp(Number(entry.y) || 0, 0, W.h);
+        const angle = Number(entry.angle) || 0;
+        let remote = previous.get(id);
+        if (remote) {
+          remote.targetX = x;
+          remote.targetY = y;
+          remote.targetAngle = angle;
+          remote.name = String(entry.name || 'Guest').slice(0, 16);
+          remote.xp = Math.max(0, Number(entry.xp) || 0);
+          if (remote.stageIndex !== stageIndex) {
+            remote.stageIndex = stageIndex;
+            remote.art = stage.art;
+            remote.colors = stage.palette;
+            remote.speed = stage.speed;
+            remote.radius = stage.radius;
+            remote.baseRadius = stage.radius;
+          }
+        } else {
+          remote = {
+            id: id,
+            remote: true,
+            isPlayer: true,
+            dead: false,
+            name: String(entry.name || 'Guest').slice(0, 16),
+            x: x, y: y, angle: angle,
+            targetX: x, targetY: y, targetAngle: angle,
+            stageIndex: stageIndex,
+            art: stage.art,
+            colors: stage.palette,
+            speed: stage.speed,
+            radius: stage.radius,
+            baseRadius: stage.radius,
+            swim: 0.8,
+            phase: G.sim * 3,
+            xp: Math.max(0, Number(entry.xp) || 0),
+            health: 100,
+            maxHealth: 100,
+            weapon: null
+          };
+        }
+        next.push(remote);
       }
+      G.remotePlayers = next;
     }
   };
 
