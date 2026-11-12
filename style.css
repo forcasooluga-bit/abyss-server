@@ -796,6 +796,30 @@ body.dead #hud {
 
 .btn.ghost:hover { background: rgba(15, 52, 72, 0.8); border-color: rgba(129, 224, 252, 0.4); }
 
+.discord-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  text-decoration: none;
+  color: #e8eaff;
+  border-color: rgba(136, 145, 255, 0.38);
+  background: rgba(88, 101, 242, 0.18);
+  letter-spacing: 0.12em;
+}
+
+.discord-btn svg {
+  width: 19px;
+  height: 19px;
+  flex: 0 0 auto;
+}
+
+.discord-btn:hover {
+  background: rgba(88, 101, 242, 0.32);
+  border-color: rgba(160, 166, 255, 0.7);
+  box-shadow: 0 8px 22px rgba(88, 101, 242, 0.18);
+}
+
 .name-card {
   margin: 2px auto 0;
   max-width: 420px;
