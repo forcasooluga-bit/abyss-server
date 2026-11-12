@@ -284,7 +284,7 @@ wss.on('connection', (ws) => {
     if (!message || message.type !== 'state') return;
 
     const now = Date.now();
-    if (now - player.lastUpdate < 45) return;
+    if (now - player.lastUpdate < 25) return;
     player.lastUpdate = now;
 
     const state = message.player;
@@ -324,7 +324,7 @@ wss.on('connection', (ws) => {
 const rosterTimer = setInterval(() => {
   broadcastRoster();
   resolvePlayerCombat();
-}, 100);
+}, 50);
 rosterTimer.unref();
 
 server.listen(PORT, HOST, () => {
