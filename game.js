@@ -2767,7 +2767,8 @@
     }
     const p = s.owner;
     if (p && p.isPlayer) {
-      const gain = f.predator ? predatorBounty(f) : Math.round(18 + f.tier * 16 + f.radius * 0.35);
+      const baseGain = f.predator ? predatorBounty(f) : Math.round(18 + f.tier * 16 + f.radius * 0.35);
+      const gain = baseGain * (p.stageIndex < A.ANGLER_TIER ? 4 : 1);
       p.xp += gain;
       G.eaten++;
       if (A.Quests) A.Quests.eatFish(f);
@@ -3334,11 +3335,12 @@
     const p = G.player;
     if (!p) return;
     const type = A.FOOD[f.kind];
-    p.xp += f.xp;
+    const foodXp = f.xp * (p.stageIndex < A.ANGLER_TIER ? 4 : 1);
+    p.xp += foodXp;
     p.hunger = Math.min(p.maxHunger, p.hunger + (f.kind === 0 ? 1.6 : f.kind === 1 ? 3.2 : 6));
     if (A.Quests) A.Quests.eatFood(type, f.xp);
     triggerBite(p, type.skins ? 0.95 : 0.72);
-    addPopup(f.x, f.y - 10, '+' + f.xp + ' XP', type.color, f.kind === 2 ? 1.25 : 0.95);
+    addPopup(f.x, f.y - 10, '+' + foodXp + ' XP', type.color, f.kind === 2 ? 1.25 : 0.95);
     if (type.skins) {
       // A starfish is the one snack with a crunch: the gape opens wider, the
       // existing chomp fires on the same frame, and the broken arms come apart
@@ -3532,7 +3534,9 @@
     // A predator has no tier and would score absurdly on the normal curve, so
     // its XP is its own: a third of everything it has hunted, never below the
     // old flat bounty.
-    const gain = f.predator ? predatorBounty(f) : Math.round(18 + f.tier * 16 + f.radius * 0.35);
+    const baseGain = f.predator ? predatorBounty(f) : Math.round(18 + f.tier * 16 + f.radius * 0.35);
+    // Give 4x XP from eaten fish until the player reaches Anglerfish.
+    const gain = baseGain * (p.stageIndex < A.ANGLER_TIER ? 4 : 1);
     p.xp += gain;
     p.hunger = Math.min(p.maxHunger, p.hunger + (f.predator ? 60 : 12));
     G.eaten++;
