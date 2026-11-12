@@ -2887,6 +2887,7 @@
     }
 
     drawStatic(ctx, view, time, lowDetail) {
+      this.drawBiomeLandmarks(ctx, view, time, lowDetail);
       this.drawSeabed(ctx, view);
 
       for (const s of this.schools) {
