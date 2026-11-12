@@ -1198,12 +1198,19 @@
     if (A.QuestsUI && A.QuestsUI.isOpen()) return;
     // And for the shop.
     if (A.ShopUI && A.ShopUI.isOpen()) return;
+    const key = (e.key || '').toLowerCase();
+    if (key === 'e') {
+      if (G.state === 'playing' && G.player && G.player.weapon === 'abyss_shuriken') {
+        e.preventDefault();
+        throwShuriken();
+      }
+      return;
+    }
     if (e.code === 'Space') {
       e.preventDefault();
       if (G.state === 'playing') {
-        // A carried trident owns SPACE outright: while it is on the shark the
-        // key drives a charge instead of the species ability, and never casts
-        // the spear away. Without a weapon SPACE is the ability it always was.
+        // SPACE remains the species ability; a carried shuriken is launched
+        // separately with E, while the Poseidon trident still owns its charge.
         if (!tridentCharge()) useAbility();
       } else if (G.state === 'menu') startRun();
       return;
@@ -1214,7 +1221,6 @@
       G.mouse.active = false;
       return;
     }
-    const key = (e.key || '').toLowerCase();
     if (key === 'p' || e.key === 'Escape') {
       if (G.state === 'playing' || G.state === 'paused') {
         e.preventDefault();
@@ -2569,13 +2575,11 @@
 
   // Poseidon in the jaws. The spear never leaves the mouth: the animal throws
   // itself forward behind it, and whatever the tines touch dies. Returns false
-  // only when there is no weapon, so SPACE can never fall through to the
-  // species ability while a trident is held.
+  // only when there is no trident, so SPACE can still trigger the species
+  // ability while a shuriken is equipped (the shuriken uses E instead).
   function tridentCharge() {
     const p = G.player;
-    if (!p || p.dead || G.state !== 'playing' || !p.weapon) return false;
-    // SPACE always drives the weapon that is actually in the jaws.
-    if (p.weapon === 'abyss_shuriken') return throwShuriken();
+    if (!p || p.dead || G.state !== 'playing' || !p.weapon || p.weapon === 'abyss_shuriken') return false;
     // On cooldown the key still belongs to the weapon; it just does nothing.
     if (G.sim < G.chargeReadyAt) return true;
 
@@ -4732,7 +4736,7 @@
       dom.shotIcon.innerHTML = shuriken ? SHURIKEN_GLYPH : SHOT_GLYPH;
       dom.shotBtn.setAttribute('aria-label', shuriken ? 'Throw shuriken' : 'Poseidon charge');
       dom.shotBtn.title = shuriken
-        ? 'Abyss Shuriken - throw it up out of the jaws (SPACE)'
+        ? 'Abyss Shuriken - throw it up out of the jaws (E)'
         : (item ? item.name : 'Trident') + ' - surge forward and ram anything (SPACE)';
     }
     dock.classList.add('live');
