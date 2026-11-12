@@ -153,6 +153,7 @@
     player: null,
     playerName: '',
     fishes: [],
+    remotePlayers: [],
     foods: [],
     particles: [],
     popups: [],
@@ -4242,6 +4243,7 @@
       list.push(f);
     }
     if (G.player) list.push(G.player);
+    for (let i = 0; i < G.remotePlayers.length; i++) list.push(G.remotePlayers[i]);
 
     list.sort(function (a, b) { return a.y - b.y; });
 
@@ -4259,6 +4261,18 @@
         ctx.globalAlpha = 0.68 + 0.32 * Math.abs(Math.sin(G.sim * 14));
       }
       A.FishArt.draw(ctx, f, G.sim, cheap);
+      if (f.remote && f.name) {
+        ctx.save();
+        ctx.globalAlpha = 0.94;
+        ctx.font = '600 ' + Math.max(11, f.radius * 0.48) + 'px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.fillStyle = '#eafaff';
+        ctx.shadowColor = 'rgba(0, 12, 28, 0.9)';
+        ctx.shadowBlur = 5;
+        ctx.fillText(f.name, f.x, f.y - f.radius * 1.18);
+        ctx.restore();
+      }
       // Carried equipment rides the same transform as the animal that owns it,
       // and it goes on top: the rod crossing the head is what reads as a grip.
       // Any record with a `weapon` key gets one, so a remote player pushed into
@@ -5070,6 +5084,58 @@
     render();
     requestAnimationFrame(loop);
   }
+
+
+  // Narrow bridge for the optional realtime layer. Remote players are visual
+  // ghosts for this first safe multiplayer pass; local gameplay remains local.
+  A.GameNet = {
+    snapshot: function () {
+      const p = G.player;
+      if (!p || G.state !== 'playing' || (A.Monsters && A.Monsters.active())) return null;
+      return {
+        name: G.playerName || 'Guest',
+        x: p.x,
+        y: p.y,
+        angle: p.angle,
+        stageIndex: p.stageIndex,
+        xp: p.xp
+      };
+    },
+    setRemotePlayers: function (players) {
+      G.remotePlayers.length = 0;
+      if (!Array.isArray(players)) return;
+      for (let i = 0; i < players.length; i++) {
+        const entry = players[i];
+        if (!entry || !entry.id) continue;
+        const stageIndex = A.clamp(entry.stageIndex | 0, 0, A.STAGES.length - 1);
+        const stage = A.STAGES[stageIndex];
+        if (!stage) continue;
+        G.remotePlayers.push({
+          id: String(entry.id),
+          remote: true,
+          isPlayer: true,
+          dead: false,
+          name: String(entry.name || 'Guest').slice(0, 16),
+          x: A.clamp(Number(entry.x) || 0, 0, W.w),
+          y: A.clamp(Number(entry.y) || 0, 0, W.h),
+          angle: Number(entry.angle) || 0,
+          targetAngle: Number(entry.angle) || 0,
+          stageIndex: stageIndex,
+          art: stage.art,
+          colors: stage.palette,
+          speed: stage.speed,
+          radius: stage.radius,
+          baseRadius: stage.radius,
+          swim: 0.8,
+          phase: G.sim * 3,
+          xp: Math.max(0, Number(entry.xp) || 0),
+          health: 100,
+          maxHealth: 100,
+          weapon: null
+        });
+      }
+    }
+  };
 
   init();
 })();
