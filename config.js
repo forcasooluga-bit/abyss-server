@@ -313,26 +313,18 @@
   // the reef has never seen before you become one.
   A.STAGES = [
     { ...A.SPECIES[0], xpReq: 0, ability: A.ABILITIES.boost },
-    { ...A.SPECIES[1], xpReq: 80, ability: A.ABILITIES.shield },
-    { ...A.SPECIES[2], xpReq: 230, ability: A.ABILITIES.surge },
-    { ...A.SPECIES[3], xpReq: 500, ability: A.ABILITIES.frenzy },
-    { ...A.SPECIES[4], xpReq: 700, ability: A.ABILITIES.lure },
-    { ...A.SPECIES[5], xpReq: 960, ability: A.ABILITIES.chomp },
-    // The manta is the wide blue between the shark and the blade: a long
-    // glide of a climb, but still short of the sawshark's doubled cost.
-    { ...A.SPECIES[6], xpReq: 5600, ability: A.ABILITIES.wingboost },
-    // The octopus is the step the reef forgets you took: soft, slower than a
-    // shark, and the first animal an orca stops bothering to hunt.
-    { ...A.SPECIES[10], xpReq: 6600, ability: A.ABILITIES.ink },
-    // The sawshark is the long climb of the ladder: double the shark's
-    // requirement, so reaching the blade takes a patient hunt.
-    { ...A.SPECIES[7], xpReq: 7680, ability: A.ABILITIES.dash },
-    // The orca is now the second apex: you reach it, and it is still the animal
-    // the reef fears - until you take the last step.
-    { ...A.SPECIES[9], xpReq: 10240, ability: A.ABILITIES.breach },
-    // The megalodon is the top of the ladder and one and a half times the orca,
-    // so the climb from the orca costs as much as the whole climb to it.
-    { ...A.SPECIES[8], xpReq: 16000, ability: A.ABILITIES.terror }
+    // Make the climb from the first fish through Anglerfish twice as demanding.
+    { ...A.SPECIES[1], xpReq: 160, ability: A.ABILITIES.shield },
+    { ...A.SPECIES[2], xpReq: 460, ability: A.ABILITIES.surge },
+    { ...A.SPECIES[3], xpReq: 1000, ability: A.ABILITIES.frenzy },
+    { ...A.SPECIES[4], xpReq: 1400, ability: A.ABILITIES.lure },
+    // From Shark onward, halve each remaining XP climb compared with the old curve.
+    { ...A.SPECIES[5], xpReq: 1920, ability: A.ABILITIES.chomp },
+    { ...A.SPECIES[6], xpReq: 4240, ability: A.ABILITIES.wingboost },
+    { ...A.SPECIES[10], xpReq: 4740, ability: A.ABILITIES.ink },
+    { ...A.SPECIES[7], xpReq: 5280, ability: A.ABILITIES.dash },
+    { ...A.SPECIES[9], xpReq: 6560, ability: A.ABILITIES.breach },
+    { ...A.SPECIES[8], xpReq: 9440, ability: A.ABILITIES.terror }
   ];
 
   A.stageByKey = function (key) {
