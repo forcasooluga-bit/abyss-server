@@ -2543,6 +2543,34 @@
       this._wake = (this._wake || 0) + (A.clamp(wake / 9, 0, 1) - (this._wake || 0)) * 0.16;
       wake = this._wake;
 
+      // Fully above the waterline: switch to open-air rendering instead of
+      // stretching the underwater gradient across the whole viewport.
+      // Keep the real waterline just below the camera so the sky stays bright
+      // while the sun, clouds and seabirds continue moving naturally.
+      if (surfScreenY > h + 50) {
+        this.drawSky(ctx, w, h, cam, time, lowDetail, h * 1.35);
+
+        // Gentle wind streaks give the air a different motion language from
+        // underwater marine snow. Deterministic positions avoid per-frame RNG.
+        ctx.save();
+        ctx.strokeStyle = 'rgba(255,255,255,0.42)';
+        ctx.lineWidth = 1.4;
+        const gustCount = lowDetail ? 5 : 11;
+        for (let i = 0; i < gustCount; i++) {
+          const span = w + 180;
+          const x = ((i * 173 + time * (24 + (i % 4) * 9) - cam.x * 0.025) % span + span) % span - 90;
+          const y = h * (0.16 + (i * 0.137) % 0.68) + Math.sin(time * 0.7 + i * 2.1) * 5;
+          const len = 10 + (i % 3) * 8;
+          ctx.globalAlpha = 0.22 + (i % 4) * 0.07;
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          ctx.quadraticCurveTo(x + len * 0.5, y - 1.5, x + len, y);
+          ctx.stroke();
+        }
+        ctx.restore();
+        return;
+      }
+
       // 1. Underwater depth background gradient (below surface)
       const underTop = Math.max(0, surfScreenY);
       const underH = h - underTop;
