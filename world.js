@@ -2781,7 +2781,113 @@
       ctx.restore();
     }
 
+
+    // Large, unmistakable habitat landmarks. These are world-space scenery,
+    // not screen overlays, so they stay anchored as the camera and players move.
+    drawBiomeLandmarks(ctx, view, time, lowDetail) {
+      const scenes = [
+        { kind: 'coral', x: WORLD.w * 0.18, y: WORLD.h * 0.285, w: 1500, h: 720 },
+        { kind: 'ice', x: WORLD.w * 0.48, y: WORLD.h * 0.585, w: 1650, h: 900 },
+        { kind: 'bio', x: WORLD.w * 0.76, y: WORLD.h * 0.835, w: 1700, h: 820 },
+        { kind: 'lava', x: WORLD.w * 0.88, y: WORLD.h * 0.958, w: 1850, h: 560 }
+      ];
+      for (const b of scenes) {
+        if (!visible(b.x, b.y, Math.max(b.w, b.h), view, 100)) continue;
+        ctx.save();
+        ctx.translate(b.x, b.y);
+        if (b.kind === 'coral') {
+          // A broad reef arch with branching coral towers and a sandy shelf.
+          ctx.fillStyle = 'rgba(2, 34, 55, 0.34)';
+          ctx.beginPath(); ctx.ellipse(0, 270, 720, 110, 0, 0, TAU); ctx.fill();
+          const reef = ctx.createLinearGradient(0, -300, 0, 330);
+          reef.addColorStop(0, '#287d91'); reef.addColorStop(0.48, '#14566e'); reef.addColorStop(1, '#092d49');
+          ctx.fillStyle = reef;
+          ctx.beginPath();
+          ctx.moveTo(-700, 280); ctx.lineTo(-650, 70); ctx.lineTo(-500, -90);
+          ctx.lineTo(-390, -250); ctx.lineTo(-260, -115); ctx.lineTo(-150, 15);
+          ctx.quadraticCurveTo(0, 105, 150, 8); ctx.lineTo(300, -210);
+          ctx.lineTo(430, -90); ctx.lineTo(570, 85); ctx.lineTo(700, 280); ctx.closePath(); ctx.fill();
+          ctx.globalCompositeOperation = 'destination-out';
+          ctx.beginPath(); ctx.ellipse(0, 70, 260, 175, 0, Math.PI, TAU); ctx.fill();
+          ctx.globalCompositeOperation = 'source-over';
+          ctx.strokeStyle = 'rgba(111, 222, 215, 0.55)'; ctx.lineWidth = 12;
+          ctx.beginPath(); ctx.moveTo(-650, 65); ctx.quadraticCurveTo(-360, -330, -150, 20); ctx.quadraticCurveTo(0, 140, 150, 10); ctx.quadraticCurveTo(390, -300, 650, 80); ctx.stroke();
+          const coralColors = ['#ff8d9d', '#ffbd79', '#8ee4cf', '#c49cff'];
+          for (let i = 0; i < 11; i++) {
+            const x = -600 + i * 120, base = 210 + Math.sin(i * 2.1) * 25;
+            ctx.strokeStyle = coralColors[i % coralColors.length]; ctx.lineWidth = 13 - (i % 3) * 2; ctx.lineCap = 'round';
+            ctx.beginPath(); ctx.moveTo(x, base); ctx.quadraticCurveTo(x - 35, base - 90, x - 12, base - 150); ctx.moveTo(x - 18, base - 70); ctx.lineTo(x - 85, base - 118); ctx.moveTo(x - 10, base - 105); ctx.lineTo(x + 52, base - 160); ctx.stroke();
+          }
+          if (!lowDetail) {
+            for (let i = 0; i < 18; i++) {
+              const x = -560 + ((i * 137) % 1120), y = -210 + ((i * 71) % 360);
+              ctx.fillStyle = i % 2 ? 'rgba(255,205,160,.8)' : 'rgba(125,245,225,.75)';
+              ctx.beginPath(); ctx.arc(x, y, 5 + (i % 4), 0, TAU); ctx.fill();
+            }
+          }
+        } else if (b.kind === 'ice') {
+          // Jagged blue ice shelves and hanging crystal teeth.
+          ctx.fillStyle = 'rgba(1, 18, 38, 0.5)';
+          ctx.beginPath(); ctx.ellipse(0, 350, 780, 150, 0, 0, TAU); ctx.fill();
+          const ice = ctx.createLinearGradient(-300, -450, 250, 420);
+          ice.addColorStop(0, '#d8f8ff'); ice.addColorStop(0.28, '#79c8e8'); ice.addColorStop(0.7, '#28658d'); ice.addColorStop(1, '#102d52');
+          ctx.fillStyle = ice;
+          ctx.beginPath(); ctx.moveTo(-760, 340); ctx.lineTo(-690, 90); ctx.lineTo(-560, -30); ctx.lineTo(-430, 120); ctx.lineTo(-280, -350); ctx.lineTo(-120, 55); ctx.lineTo(30, -210); ctx.lineTo(180, 90); ctx.lineTo(360, -390); ctx.lineTo(510, 80); ctx.lineTo(690, -40); ctx.lineTo(780, 340); ctx.closePath(); ctx.fill();
+          ctx.strokeStyle = 'rgba(222,250,255,.72)'; ctx.lineWidth = 9;
+          ctx.beginPath(); ctx.moveTo(-680, 90); ctx.lineTo(-560, -30); ctx.lineTo(-430, 120); ctx.lineTo(-280, -350); ctx.lineTo(-120, 55); ctx.lineTo(30, -210); ctx.lineTo(180, 90); ctx.lineTo(360, -390); ctx.lineTo(510, 80); ctx.lineTo(690, -40); ctx.stroke();
+          ctx.fillStyle = 'rgba(182,235,255,.7)';
+          for (let i = 0; i < 8; i++) {
+            const x = -620 + i * 175, len = 100 + (i % 3) * 55;
+            ctx.beginPath(); ctx.moveTo(x, -250); ctx.lineTo(x + 35, -250 + len); ctx.lineTo(x + 70, -250); ctx.closePath(); ctx.fill();
+          }
+          if (!lowDetail) {
+            ctx.globalAlpha = 0.35; ctx.drawImage(glowSprite('#8bdfff'), -720, -420, 1440, 900); ctx.globalAlpha = 1;
+          }
+        } else if (b.kind === 'bio') {
+          // Giant glowing mushroom-like sea plants, with layered caps and stems.
+          ctx.fillStyle = 'rgba(0, 8, 28, 0.48)';
+          ctx.beginPath(); ctx.ellipse(0, 300, 800, 150, 0, 0, TAU); ctx.fill();
+          for (let i = 0; i < 9; i++) {
+            const x = -650 + i * 160, stemH = 210 + (i % 4) * 55, capW = 80 + (i % 3) * 24;
+            ctx.strokeStyle = i % 2 ? '#4bd9d2' : '#8d8bff'; ctx.lineWidth = 22; ctx.lineCap = 'round';
+            ctx.beginPath(); ctx.moveTo(x, 280); ctx.quadraticCurveTo(x - 25, 100, x + (i % 2 ? 30 : -25), 280 - stemH); ctx.stroke();
+            const capY = 280 - stemH;
+            ctx.fillStyle = i % 2 ? '#42cfc9' : '#8c83ed';
+            ctx.beginPath(); ctx.ellipse(x + (i % 2 ? 30 : -25), capY, capW, 34, 0, Math.PI, TAU); ctx.lineTo(x + (i % 2 ? 30 : -25) + capW, capY + 8); ctx.quadraticCurveTo(x, capY + 62, x + (i % 2 ? 30 : -25) - capW, capY + 8); ctx.closePath(); ctx.fill();
+            ctx.globalAlpha = 0.72; ctx.drawImage(glowSprite(i % 2 ? '#42f4e8' : '#9c8cff'), x - capW * 1.8, capY - capW, capW * 3.6, capW * 2.5); ctx.globalAlpha = 1;
+          }
+          if (!lowDetail) {
+            for (let i = 0; i < 34; i++) {
+              const x = -760 + ((i * 97) % 1520), y = -330 + ((i * 61) % 650);
+              ctx.fillStyle = i % 3 ? 'rgba(115,245,238,.75)' : 'rgba(196,160,255,.8)';
+              ctx.beginPath(); ctx.arc(x, y, 2.5 + (i % 3), 0, TAU); ctx.fill();
+            }
+          }
+        } else {
+          // Basalt volcanic ridge with glowing magma cracks and vent plumes.
+          ctx.fillStyle = 'rgba(0, 0, 8, 0.65)';
+          ctx.beginPath(); ctx.ellipse(0, 260, 850, 150, 0, 0, TAU); ctx.fill();
+          const rock = ctx.createLinearGradient(0, -250, 0, 360);
+          rock.addColorStop(0, '#59606a'); rock.addColorStop(0.35, '#292d3b'); rock.addColorStop(1, '#090e1a');
+          ctx.fillStyle = rock;
+          ctx.beginPath(); ctx.moveTo(-820, 320); ctx.lineTo(-700, 150); ctx.lineTo(-570, 30); ctx.lineTo(-430, 190); ctx.lineTo(-250, -170); ctx.lineTo(-80, 100); ctx.lineTo(110, -260); ctx.lineTo(270, 110); ctx.lineTo(460, -120); ctx.lineTo(620, 110); ctx.lineTo(820, 320); ctx.closePath(); ctx.fill();
+          ctx.save(); ctx.globalCompositeOperation = 'screen'; ctx.strokeStyle = '#ff6a32'; ctx.lineWidth = 13; ctx.shadowColor = '#ff4b20'; ctx.shadowBlur = lowDetail ? 8 : 28;
+          ctx.beginPath(); ctx.moveTo(-650, 145); ctx.lineTo(-510, 80); ctx.lineTo(-420, 170); ctx.lineTo(-260, -80); ctx.lineTo(-120, 120); ctx.lineTo(100, -160); ctx.lineTo(245, 100); ctx.lineTo(450, -65); ctx.lineTo(610, 135); ctx.stroke();
+          ctx.strokeStyle = '#ffd17a'; ctx.lineWidth = 4; ctx.stroke(); ctx.restore();
+          const pulse = 0.65 + Math.sin(time * 1.7) * 0.16;
+          ctx.globalAlpha = pulse; ctx.drawImage(glowSprite('#ff642e'), -760, -300, 1520, 780); ctx.globalAlpha = 1;
+          for (let i = 0; i < 5; i++) {
+            const x = -560 + i * 275, y = -80 - Math.sin(time * 0.8 + i) * 14;
+            ctx.fillStyle = 'rgba(180,205,215,.16)';
+            for (let p = 0; p < 4; p++) { ctx.beginPath(); ctx.arc(x + Math.sin(time + p + i) * 14, y - p * 42, 18 + p * 8, 0, TAU); ctx.fill(); }
+          }
+        }
+        ctx.restore();
+      }
+    }
+
     drawStatic(ctx, view, time, lowDetail) {
+      this.drawBiomeLandmarks(ctx, view, time, lowDetail);
       this.drawSeabed(ctx, view);
 
       for (const s of this.schools) {
