@@ -115,7 +115,9 @@ const server = http.createServer(async (req, res) => {
 
   res.writeHead(200, {
     'Content-Type': contentType,
-    'Cache-Control': ext === '.html'
+    // Revalidate HTML and JavaScript on every load so gameplay config updates
+    // (including evolution XP thresholds) cannot stay stale in the browser cache.
+    'Cache-Control': (ext === '.html' || ext === '.js')
       ? 'no-cache'
       : 'public, max-age=3600'
   });
