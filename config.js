@@ -313,10 +313,10 @@
   // the reef has never seen before you become one.
   A.STAGES = [
     { ...A.SPECIES[0], xpReq: 0, ability: A.ABILITIES.boost },
-    { ...A.SPECIES[1], xpReq: 160, ability: A.ABILITIES.shield },
-    { ...A.SPECIES[2], xpReq: 460, ability: A.ABILITIES.surge },
-    { ...A.SPECIES[3], xpReq: 1000, ability: A.ABILITIES.frenzy },
-    { ...A.SPECIES[4], xpReq: 1400, ability: A.ABILITIES.lure },
+    { ...A.SPECIES[1], xpReq: 40, ability: A.ABILITIES.shield },
+    { ...A.SPECIES[2], xpReq: 115, ability: A.ABILITIES.surge },
+    { ...A.SPECIES[3], xpReq: 250, ability: A.ABILITIES.frenzy },
+    { ...A.SPECIES[4], xpReq: 350, ability: A.ABILITIES.lure },
     { ...A.SPECIES[5], xpReq: 1920, ability: A.ABILITIES.chomp },
     // The manta is the wide blue between the shark and the blade: a long
     // glide of a climb, but still short of the sawshark's doubled cost.
