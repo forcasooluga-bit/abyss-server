@@ -5042,6 +5042,8 @@
     if (dt > 0.05) dt = 0.05;
     if (dt < 0) dt = 0;
 
+    updateRemotePlayers(dt);
+
     // Two-way adaptive resolution: shed pixels when the frame budget goes, and
     // buy them back once the ocean turns out to be cheaper than it looked.
     // Measuring at every quality level is what makes the recovery possible.
@@ -5087,6 +5089,19 @@
   }
 
 
+  // Smooth remote snapshots between network packets. The server sends at
+  // 30 Hz; rendering interpolates position and heading every animation frame.
+  function updateRemotePlayers(dt) {
+    const blend = 1 - Math.exp(-18 * Math.max(0, dt));
+    for (let i = 0; i < G.remotePlayers.length; i++) {
+      const p = G.remotePlayers[i];
+      p.x += (p.targetX - p.x) * blend;
+      p.y += (p.targetY - p.y) * blend;
+      p.angle = A.angleDamp(p.angle, p.targetAngle, 18, dt);
+      p.phase += dt * (3.2 + 6.5 * p.swim);
+    }
+  }
+
   // Bridge for realtime players and server-confirmed PvP hits.
   A.GameNet = {
     applyPvPHit: function (hit) {
@@ -5115,37 +5130,50 @@
       };
     },
     setRemotePlayers: function (players) {
-      G.remotePlayers.length = 0;
-      if (!Array.isArray(players)) return;
+      if (!Array.isArray(players)) {
+        G.remotePlayers.length = 0;
+        return;
+      }
+      const seen = Object.create(null);
       for (let i = 0; i < players.length; i++) {
         const entry = players[i];
         if (!entry || !entry.id) continue;
+        const id = String(entry.id);
+        seen[id] = true;
         const stageIndex = A.clamp(entry.stageIndex | 0, 0, A.STAGES.length - 1);
         const stage = A.STAGES[stageIndex];
         if (!stage) continue;
-        G.remotePlayers.push({
-          id: String(entry.id),
-          remote: true,
-          isPlayer: true,
-          dead: false,
-          name: String(entry.name || 'Guest').slice(0, 16),
-          x: A.clamp(Number(entry.x) || 0, 0, W.w),
-          y: A.clamp(Number(entry.y) || 0, 0, W.h),
-          angle: Number(entry.angle) || 0,
-          targetAngle: Number(entry.angle) || 0,
-          stageIndex: stageIndex,
-          art: stage.art,
-          colors: stage.palette,
-          speed: stage.speed,
-          radius: stage.radius,
-          baseRadius: stage.radius,
-          swim: 0.8,
-          phase: G.sim * 3,
-          xp: Math.max(0, Number(entry.xp) || 0),
-          health: 100,
-          maxHealth: 100,
-          weapon: null
-        });
+        let remote = null;
+        for (let j = 0; j < G.remotePlayers.length; j++) {
+          if (G.remotePlayers[j].id === id) { remote = G.remotePlayers[j]; break; }
+        }
+        const x = A.clamp(Number(entry.x) || 0, 0, W.w);
+        const y = A.clamp(Number(entry.y) || 0, 0, W.h);
+        const angle = Number.isFinite(Number(entry.angle)) ? Number(entry.angle) : 0;
+        if (!remote) {
+          remote = {
+            id: id, remote: true, isPlayer: true, dead: false,
+            x: x, y: y, targetX: x, targetY: y,
+            angle: angle, targetAngle: angle,
+            swim: 0.8, phase: G.sim * 3,
+            health: 100, maxHealth: 100, weapon: null
+          };
+          G.remotePlayers.push(remote);
+        }
+        remote.name = String(entry.name || 'Guest').slice(0, 16);
+        remote.targetX = x;
+        remote.targetY = y;
+        remote.targetAngle = angle;
+        remote.stageIndex = stageIndex;
+        remote.art = stage.art;
+        remote.colors = stage.palette;
+        remote.speed = stage.speed;
+        remote.radius = stage.radius;
+        remote.baseRadius = stage.radius;
+        remote.xp = Math.max(0, Number(entry.xp) || 0);
+      }
+      for (let i = G.remotePlayers.length - 1; i >= 0; i--) {
+        if (!seen[G.remotePlayers[i].id]) G.remotePlayers.splice(i, 1);
       }
     }
   };
