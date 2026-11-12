@@ -173,9 +173,9 @@ function broadcastRoster() {
   }
 }
 
-// Server-checked close-range bites. Only the larger animal can land a bite;
-// the attacker must also be facing the target. Client messages never choose
-// the victim or damage amount.
+// Server-checked close-range bites. Stage order mirrors A.STAGES in config.js:
+// blue, coral, fast, hunter, angler, shark, manta, octopus, sawshark, orca, megalodon.
+// Only a clearly larger animal can bite; the attacker must be facing the target.
 const STAGE_RADII = [13, 19, 25.5, 34, 40, 46, 50, 74, 54, 104, 156];
 const biteCooldowns = new Map();
 
@@ -196,17 +196,22 @@ function resolvePlayerCombat() {
       const dx = target.x - attacker.x;
       const dy = target.y - attacker.y;
       const distance = Math.hypot(dx, dy);
-      if (distance > (attackRadius + targetRadius) * 0.78) continue;
+      // Use a generous but still close bite reach so large player sprites do not
+      // visually overlap without registering a hit on the server.
+      if (distance > (attackRadius + targetRadius) * 0.96) continue;
 
       let angleDiff = Math.atan2(dy, dx) - attacker.angle;
       angleDiff = Math.atan2(Math.sin(angleDiff), Math.cos(angleDiff));
-      if (Math.abs(angleDiff) > 1.05) continue;
+      if (Math.abs(angleDiff) > 1.38) continue;
 
       const key = attacker.id + ':' + target.id;
       if (now - (biteCooldowns.get(key) || 0) < 900) continue;
       biteCooldowns.set(key, now);
 
-      const damage = Math.max(8, Math.min(24, Math.round(12 + (attackRadius - targetRadius) * 0.08)));
+      // The size advantage must matter in PvP: apex animals should take down
+      // tiny fish in a few bites, not need a long chain of tiny damage ticks.
+      const sizeGap = Math.max(0, attackRadius - targetRadius);
+      const damage = Math.max(16, Math.min(60, Math.round(18 + sizeGap * 0.42)));
       const victimSocket = Array.from(wss.clients).find((socket) => socket.playerId === target.id);
       const attackerSocket = Array.from(wss.clients).find((socket) => socket.playerId === attacker.id);
       if (victimSocket) sendJson(victimSocket, {
