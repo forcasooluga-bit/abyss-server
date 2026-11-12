@@ -137,6 +137,140 @@ const server = http.createServer(async (req, res) => {
   stream.pipe(res);
 });
 
+
+const WebSocket = require('ws');
+
+// Realtime multiplayer: the server relays validated player snapshots.
+// The existing single-player simulation remains client-side and unchanged.
+const wss = new WebSocket.Server({ noServer: true, maxPayload: 2048 });
+const onlinePlayers = new Map();
+
+function sendJson(socket, payload) {
+  if (socket.readyState === WebSocket.OPEN) {
+    socket.send(JSON.stringify(payload));
+  }
+}
+
+function publicRoster() {
+  return Array.from(onlinePlayers.values()).map((player) => ({
+    id: player.id,
+    name: player.name,
+    x: player.x,
+    y: player.y,
+    angle: player.angle,
+    stageIndex: player.stageIndex,
+    xp: player.xp
+  }));
+}
+
+function broadcastRoster() {
+  if (onlinePlayers.size === 0) return;
+  const message = JSON.stringify({ type: 'players', players: publicRoster() });
+  for (const socket of wss.clients) {
+    if (socket.readyState === WebSocket.OPEN) socket.send(message);
+  }
+}
+
+server.on('upgrade', (req, socket, head) => {
+  let pathname = '/';
+  try {
+    pathname = new URL(req.url, 'http://localhost').pathname;
+  } catch {
+    socket.destroy();
+    return;
+  }
+
+  if (pathname !== '/ws') {
+    socket.destroy();
+    return;
+  }
+
+  // Browser clients must connect from the same site that serves the game.
+  const origin = req.headers.origin;
+  if (origin) {
+    try {
+      if (new URL(origin).host !== req.headers.host) {
+        socket.write('HTTP/1.1 403 Forbidden\r\n\r\n');
+        socket.destroy();
+        return;
+      }
+    } catch {
+      socket.destroy();
+      return;
+    }
+  }
+
+  wss.handleUpgrade(req, socket, head, (ws) => {
+    wss.emit('connection', ws, req);
+  });
+});
+
+wss.on('connection', (ws) => {
+  const id = require('node:crypto').randomUUID();
+  const player = {
+    id,
+    name: 'Guest',
+    x: 7000,
+    y: 1000,
+    angle: 0,
+    stageIndex: 0,
+    xp: 0,
+    lastUpdate: 0
+  };
+  onlinePlayers.set(id, player);
+  sendJson(ws, { type: 'welcome', id });
+  broadcastRoster();
+
+  ws.on('message', (raw) => {
+    let message;
+    try {
+      message = JSON.parse(raw.toString());
+    } catch {
+      return;
+    }
+    if (!message || message.type !== 'state') return;
+
+    const now = Date.now();
+    if (now - player.lastUpdate < 45) return;
+    player.lastUpdate = now;
+
+    const state = message.player;
+    if (!state || typeof state !== 'object') return;
+    const x = Number(state.x);
+    const y = Number(state.y);
+    const angle = Number(state.angle);
+    const stageIndex = Number(state.stageIndex);
+    const xp = Number(state.xp);
+
+    if (![x, y, angle, stageIndex, xp].every(Number.isFinite)) return;
+    if (x < 0 || x > 50000 || y < 0 || y > 50000) return;
+    if (!Number.isInteger(stageIndex) || stageIndex < 0 || stageIndex > 30) return;
+
+    player.name = String(state.name || 'Guest')
+      .replace(/[<>\u0000-\u001f]/g, '')
+      .trim()
+      .slice(0, 16) || 'Guest';
+    player.x = x;
+    player.y = y;
+    player.angle = Math.max(-Math.PI * 4, Math.min(Math.PI * 4, angle));
+    player.stageIndex = stageIndex;
+    player.xp = Math.max(0, Math.min(2147483647, Math.floor(xp)));
+  });
+
+  ws.on('close', () => {
+    onlinePlayers.delete(id);
+    broadcastRoster();
+  });
+
+  ws.on('error', () => {
+    onlinePlayers.delete(id);
+    broadcastRoster();
+  });
+});
+
+const rosterTimer = setInterval(broadcastRoster, 100);
+rosterTimer.unref();
+
 server.listen(PORT, HOST, () => {
   console.log(`ABYSS.IO running on ${HOST}:${PORT}`);
 });
