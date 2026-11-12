@@ -5086,9 +5086,22 @@
   }
 
 
-  // Narrow bridge for the optional realtime layer. Remote players are visual
-  // ghosts for this first safe multiplayer pass; local gameplay remains local.
+  // Bridge for realtime players and server-confirmed PvP hits.
   A.GameNet = {
+    applyPvPHit: function (hit) {
+      const p = G.player;
+      if (!p || G.state !== 'playing' || !hit) return;
+      const amount = A.clamp(Number(hit.damage) || 18, 1, 30);
+      const source = {
+        isPlayer: true,
+        name: String(hit.attackerName || 'Player').slice(0, 16),
+        x: A.clamp(Number(hit.x) || p.x, 0, W.w),
+        y: A.clamp(Number(hit.y) || p.y, 0, W.h)
+      };
+      damagePlayer(amount, source);
+      addPopup(p.x, p.y - p.radius - 14, '-' + Math.round(amount), '#ff8f6a', 1.1);
+    },
+    snapshot: function () {
     snapshot: function () {
       const p = G.player;
       if (!p || G.state !== 'playing' || (A.Monsters && A.Monsters.active())) return null;
