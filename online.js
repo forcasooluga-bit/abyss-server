@@ -36,6 +36,10 @@
 
       if (message.type === 'welcome') {
         playerId = String(message.id || '');
+      } else if (message.type === 'pvp-hit') {
+        if (A.GameNet && A.GameNet.applyPvPHit) A.GameNet.applyPvPHit(message);
+      } else if (message.type === 'pvp-hit-confirm') {
+        if (A.game && A.game.ui && A.game.ui.toast) A.game.ui.toast('HIT CONFIRMED · ' + String(message.targetName || 'PLAYER'), 1100);
       } else if (message.type === 'players' && Array.isArray(message.players)) {
         roster = message.players.filter(function (player) {
           return player && String(player.id) !== playerId;

@@ -171,6 +171,58 @@ function broadcastRoster() {
   }
 }
 
+// Server-checked close-range bites. Only the larger animal can land a bite;
+// the attacker must also be facing the target. Client messages never choose
+// the victim or damage amount.
+const STAGE_RADII = [13, 19, 25.5, 34, 40, 46, 50, 74, 54, 104, 156];
+const biteCooldowns = new Map();
+
+function resolvePlayerCombat() {
+  const players = Array.from(onlinePlayers.values());
+  const now = Date.now();
+  for (let i = 0; i < players.length; i++) {
+    const attacker = players[i];
+    if (now - attacker.lastUpdate > 500) continue;
+    const attackRadius = STAGE_RADII[attacker.stageIndex] || 13;
+    for (let j = 0; j < players.length; j++) {
+      if (i === j) continue;
+      const target = players[j];
+      if (now - target.lastUpdate > 500) continue;
+      const targetRadius = STAGE_RADII[target.stageIndex] || 13;
+      if (attackRadius < targetRadius * 0.86) continue;
+
+      const dx = target.x - attacker.x;
+      const dy = target.y - attacker.y;
+      const distance = Math.hypot(dx, dy);
+      if (distance > (attackRadius + targetRadius) * 0.78) continue;
+
+      let angleDiff = Math.atan2(dy, dx) - attacker.angle;
+      angleDiff = Math.atan2(Math.sin(angleDiff), Math.cos(angleDiff));
+      if (Math.abs(angleDiff) > 1.05) continue;
+
+      const key = attacker.id + ':' + target.id;
+      if (now - (biteCooldowns.get(key) || 0) < 900) continue;
+      biteCooldowns.set(key, now);
+
+      const damage = Math.max(8, Math.min(24, Math.round(12 + (attackRadius - targetRadius) * 0.08)));
+      const victimSocket = Array.from(wss.clients).find((socket) => socket.playerId === target.id);
+      const attackerSocket = Array.from(wss.clients).find((socket) => socket.playerId === attacker.id);
+      if (victimSocket) sendJson(victimSocket, {
+        type: 'pvp-hit', damage, attackerName: attacker.name,
+        x: attacker.x, y: attacker.y
+      });
+      if (attackerSocket) sendJson(attackerSocket, {
+        type: 'pvp-hit-confirm', targetName: target.name
+      });
+    }
+  }
+  if (biteCooldowns.size > 5000) {
+    for (const [key, time] of biteCooldowns) {
+      if (now - time > 30000) biteCooldowns.delete(key);
+    }
+  }
+}
+
 server.on('upgrade', (req, socket, head) => {
   let pathname = '/';
   try {
@@ -217,6 +269,7 @@ wss.on('connection', (ws) => {
     xp: 0,
     lastUpdate: 0
   };
+  ws.playerId = id;
   onlinePlayers.set(id, player);
   sendJson(ws, { type: 'welcome', id });
   broadcastRoster();
@@ -268,7 +321,10 @@ wss.on('connection', (ws) => {
   });
 });
 
-const rosterTimer = setInterval(broadcastRoster, 100);
+const rosterTimer = setInterval(() => {
+  broadcastRoster();
+  resolvePlayerCombat();
+}, 100);
 rosterTimer.unref();
 
 server.listen(PORT, HOST, () => {
