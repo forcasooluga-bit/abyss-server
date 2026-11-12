@@ -361,6 +361,16 @@
       this.noise({ freq: 600, freqEnd: 2600, filter: 'bandpass', dur: 0.55, gain: 0.05 * v, q: 0.7 });
     },
 
+    // A full-bodied splash on a breach landing: a broad sheet of spray,
+    // bright droplets and a low water-thump underneath.
+    splash: function (size) {
+      if (!this.ready || this.muted) return;
+      const w = Math.max(0.45, Math.min(2.2, (size || 30) / 46));
+      this.noise({ freq: 1850, freqEnd: 230, filter: 'lowpass', q: 0.8, dur: 0.48 + 0.12 * w, gain: 0.075 + 0.025 * w, attack: 0.003 });
+      this.noise({ freq: 4600, freqEnd: 950, filter: 'bandpass', q: 0.7, dur: 0.3 + 0.08 * w, gain: 0.032 + 0.018 * w, delay: 0.025 });
+      this.tone({ freq: 118 - 34 * w, freqEnd: 38, type: 'sine', dur: 0.4 + 0.08 * w, gain: 0.04 + 0.025 * w, attack: 0.004 });
+    },
+
     discover: function () {
       if (!this.ready || this.muted) return;
       this.tone({ freq: 784, type: 'triangle', dur: 0.34, gain: 0.05, attack: 0.01 });
