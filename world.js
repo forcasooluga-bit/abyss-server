@@ -2576,6 +2576,10 @@
         }
         ctx.fillStyle = this._zoneWash;
         ctx.fillRect(0, underTop, w, underH);
+
+        // Biome atmosphere is background-only: it never changes collision,
+        // food, creatures, XP, or the existing depth-zone boundaries.
+        this.drawBiomeAtmosphere(ctx, w, h, cam, time, zone, underTop, underH, lowDetail);
       }
 
       // 2. Upward Surface Skylight / Snell's Window Glow (When submerged near the surface)
@@ -2653,6 +2657,128 @@
       // 9. Depth grade and vignette, laid over the water but under everything
       // you can interact with, so the reef never dims an animal or a pickup.
       this.drawDepthGrade(ctx, w, h, depthT);
+    }
+
+    drawBiomeAtmosphere(ctx, w, h, cam, time, zone, underTop, underH, lowDetail) {
+      if (!zone || underH <= 0) return;
+      const count = lowDetail ? 5 : 9;
+      const phase = (cam.x * 0.0007 + cam.y * 0.0003);
+
+      ctx.save();
+
+      if (zone.id === 'reef') {
+        // Coral Kingdom: warm turquoise haze and distant coral silhouettes.
+        ctx.fillStyle = 'rgba(28, 190, 177, 0.055)';
+        ctx.fillRect(0, underTop, w, underH);
+        const baseY = h - 12;
+        for (let side = 0; side < 2; side++) {
+          const x = side === 0 ? 0 : w;
+          ctx.save();
+          ctx.translate(x, baseY);
+          ctx.scale(side === 0 ? 1 : -1, 1);
+          ctx.globalAlpha = 0.22;
+          ctx.fillStyle = '#087f83';
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.lineTo(0, -h * 0.16);
+          ctx.quadraticCurveTo(18, -h * 0.22, 30, -h * 0.14);
+          ctx.quadraticCurveTo(38, -h * 0.25, 52, -h * 0.2);
+          ctx.lineTo(62, 0);
+          ctx.closePath();
+          ctx.fill();
+          ctx.strokeStyle = '#42cbb0';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(18, -8);
+          ctx.quadraticCurveTo(4, -h * 0.12, 22, -h * 0.17);
+          ctx.moveTo(36, -8);
+          ctx.quadraticCurveTo(58, -h * 0.12, 48, -h * 0.19);
+          ctx.stroke();
+          ctx.restore();
+        }
+      } else if (zone.id === 'trench') {
+        // Frozen Abyss: cold blue cast and sparse drifting ice flecks.
+        ctx.fillStyle = 'rgba(130, 205, 255, 0.075)';
+        ctx.fillRect(0, underTop, w, underH);
+        ctx.fillStyle = 'rgba(190, 232, 255, 0.12)';
+        for (let i = 0; i < count; i++) {
+          const x = ((i * 173 + cam.x * (0.08 + (i % 3) * 0.025)) % (w + 80) + w + 80) % (w + 80) - 40;
+          const y = underTop + ((i * 97 + time * (5 + i % 4) + phase * 80) % Math.max(1, underH));
+          const r = 2 + (i % 3) * 1.4;
+          ctx.beginPath();
+          ctx.moveTo(x, y - r * 1.8);
+          ctx.lineTo(x + r, y);
+          ctx.lineTo(x, y + r * 1.8);
+          ctx.lineTo(x - r, y);
+          ctx.closePath();
+          ctx.fill();
+        }
+        ctx.globalAlpha = 0.18;
+        ctx.fillStyle = '#b7eaff';
+        ctx.beginPath();
+        ctx.moveTo(0, underTop);
+        ctx.lineTo(w * 0.12, underTop);
+        ctx.lineTo(0, underTop + h * 0.2);
+        ctx.closePath();
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(w, underTop);
+        ctx.lineTo(w * 0.88, underTop);
+        ctx.lineTo(w, underTop + h * 0.16);
+        ctx.closePath();
+        ctx.fill();
+      } else if (zone.id === 'vents') {
+        // Volcanic Trench: a restrained ember glow near the lower edge.
+        ctx.fillStyle = 'rgba(111, 30, 25, 0.10)';
+        ctx.fillRect(0, underTop, w, underH);
+        const glow = ctx.createLinearGradient(0, h * 0.56, 0, h);
+        glow.addColorStop(0, 'rgba(255, 95, 35, 0)');
+        glow.addColorStop(1, 'rgba(255, 75, 24, 0.16)');
+        ctx.fillStyle = glow;
+        ctx.fillRect(0, h * 0.56, w, h * 0.44);
+        ctx.fillStyle = 'rgba(255, 165, 90, 0.22)';
+        for (let i = 0; i < (lowDetail ? 3 : 6); i++) {
+          const x = ((i * 211 + cam.x * 0.11) % (w + 50) + w + 50) % (w + 50) - 25;
+          const y = h - ((i * 71 + time * (8 + i % 3) + phase * 30) % Math.max(1, h * 0.42));
+          ctx.globalAlpha = 0.12 + (0.08 * (0.5 + 0.5 * Math.sin(time * 1.4 + i)));
+          ctx.beginPath();
+          ctx.arc(x, y, 2 + (i % 3), 0, TAU);
+          ctx.fill();
+        }
+      } else if (zone.id === 'abyss') {
+        // Bioluminescent Gardens: deep indigo water with distant glowing flora.
+        ctx.fillStyle = 'rgba(67, 48, 145, 0.075)';
+        ctx.fillRect(0, underTop, w, underH);
+        const plantCount = lowDetail ? 3 : 6;
+        for (let i = 0; i < plantCount; i++) {
+          const side = i % 2;
+          const x = side ? w - 24 - (i * 31) : 24 + (i * 31);
+          const height = h * (0.16 + (i % 3) * 0.045);
+          const sway = Math.sin(time * 0.45 + i * 1.7 + phase) * 12;
+          ctx.globalAlpha = 0.15 + (0.04 * Math.sin(time + i));
+          ctx.strokeStyle = i % 2 ? '#7b8cff' : '#55e6d1';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(x, h);
+          ctx.quadraticCurveTo(x + sway, h - height * 0.5, x - sway * 0.4, h - height);
+          ctx.stroke();
+          ctx.fillStyle = i % 2 ? '#9b8cff' : '#65f2d8';
+          ctx.beginPath();
+          ctx.arc(x - sway * 0.4, h - height, 4 + (i % 3), 0, TAU);
+          ctx.fill();
+        }
+        ctx.globalAlpha = 0.18;
+        ctx.fillStyle = '#8bdfff';
+        for (let i = 0; i < count; i++) {
+          const x = ((i * 149 + cam.x * 0.045) % (w + 30) + w + 30) % (w + 30) - 15;
+          const y = underTop + ((i * 113 + time * (3 + i % 3) + phase * 40) % Math.max(1, underH));
+          ctx.beginPath();
+          ctx.arc(x, y, 1.5 + (i % 3), 0, TAU);
+          ctx.fill();
+        }
+      }
+
+      ctx.restore();
     }
 
     drawStatic(ctx, view, time, lowDetail) {
