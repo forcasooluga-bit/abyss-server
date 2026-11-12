@@ -1358,16 +1358,20 @@
       p.x += Math.cos(p.angle) * p.speedSmooth * dt + p.knockX * dt;
       p.y += Math.sin(p.angle) * p.speedSmooth * dt + p.knockY * dt;
 
-      // Leaving the water at speed becomes a physical breach: momentum carries
-      // the animal upward, then gravity takes over until it re-enters the sea.
-      if (previousY >= SURFACE_WORLD_Y + p.radius * 0.15 &&
-          p.y < SURFACE_WORLD_Y - p.radius * 0.08 &&
-          p.speedSmooth > Math.max(70, p.speed * 0.38) &&
-          Math.sin(p.angle) < -0.32) {
+      // Invisible surface hitbox: trigger as soon as the fish crosses the
+      // waterline zone while driving upward. The old check required the
+      // centre to pass above the exact line in one frame, which could miss.
+      const surfaceHitboxBottom = SURFACE_WORLD_Y + Math.max(28, p.radius * 0.9);
+      const crossedSurfaceHitbox = previousY > surfaceHitboxBottom && p.y <= surfaceHitboxBottom;
+      if (crossedSurfaceHitbox &&
+          p.speedSmooth > Math.max(55, p.speed * 0.3) &&
+          Math.sin(p.angle) < -0.22) {
         p.airborne = true;
         p.airVx = Math.cos(p.angle) * p.speedSmooth * 0.82;
         p.airVy = Math.min(-150, Math.sin(p.angle) * p.speedSmooth * 2.65);
         p.y = SURFACE_WORLD_Y - p.radius * 0.12;
+        // Splash on takeoff; the same effect fires again when the fish lands.
+        spawnSurfaceSplash(p.x, SURFACE_WORLD_Y, p.radius);
       }
 
       // Missions count the water you actually propelled through, not the shove
