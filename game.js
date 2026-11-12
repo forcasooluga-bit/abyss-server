@@ -5102,7 +5102,6 @@
       addPopup(p.x, p.y - p.radius - 14, '-' + Math.round(amount), '#ff8f6a', 1.1);
     },
     snapshot: function () {
-    snapshot: function () {
       const p = G.player;
       if (!p || G.state !== 'playing' || (A.Monsters && A.Monsters.active())) return null;
       return {
