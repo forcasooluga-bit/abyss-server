@@ -1286,13 +1286,14 @@
     window.addEventListener('pointerdown', onPointerDown);
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('keyup', onKeyUp);
+    // Losing window focus must not pause the dive. Otherwise a hunted player
+    // could escape by clicking outside the game and opening the Resume Dive
+    // overlay. Only release held movement keys to avoid stuck movement.
     window.addEventListener('blur', function () {
       clearKeys();
-      if (G.state === 'playing') togglePause();
     });
     document.addEventListener('visibilitychange', function () {
       clearKeys();
-      if (document.hidden && G.state === 'playing') togglePause();
     });
     dom.canvas.addEventListener('contextmenu', function (e) { e.preventDefault(); });
   }
