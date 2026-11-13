@@ -20,6 +20,10 @@
   // places instead of a brighter copy of the reef.
   const NO_LIGHT_Y = A.WORLD.h * 0.78;
 
+  // Lightweight decorative ocean artwork; gameplay and depth rendering stay procedural.
+  const OCEAN_BG = new Image();
+  OCEAN_BG.src = 'ocean_background.svg';
+
   // ------------------------------------------------------------------
   // Color helpers
   // ------------------------------------------------------------------
@@ -2604,6 +2608,15 @@
         }
         ctx.fillStyle = this._zoneWash;
         ctx.fillRect(0, underTop, w, underH);
+
+        // Subtle artwork layer for the sunlit surface and coral reef only.
+        // It is purely visual: existing zones, entities and collisions are unchanged.
+        if ((zone.id === 'surface' || zone.id === 'reef') && OCEAN_BG.complete && OCEAN_BG.naturalWidth > 0) {
+          ctx.save();
+          ctx.globalAlpha = zone.id === 'reef' ? 0.28 : 0.18;
+          ctx.drawImage(OCEAN_BG, 0, underTop, w, underH);
+          ctx.restore();
+        }
 
         // Biome atmosphere is background-only: it never changes collision,
         // food, creatures, XP, or the existing depth-zone boundaries.
