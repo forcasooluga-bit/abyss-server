@@ -196,13 +196,11 @@ function resolvePlayerCombat() {
       const dx = target.x - attacker.x;
       const dy = target.y - attacker.y;
       const distance = Math.hypot(dx, dy);
-      // Use a generous but still close bite reach so large player sprites do not
-      // visually overlap without registering a hit on the server.
-      if (distance > (attackRadius + targetRadius) * 0.96) continue;
-
-      let angleDiff = Math.atan2(dy, dx) - attacker.angle;
-      angleDiff = Math.atan2(Math.sin(angleDiff), Math.cos(angleDiff));
-      if (Math.abs(angleDiff) > 1.38) continue;
+      // Match the normal fish-eating rule in game.js: a player can eat
+      // eligible prey by jaw-range contact, without needing a special facing
+      // cone. The local PvE collision has no angle gate, so PvP must not add one.
+      const biteReach = attackRadius * 0.9 + targetRadius * 0.6;
+      if (distance > biteReach) continue;
 
       const key = attacker.id + ':' + target.id;
       if (now - (biteCooldowns.get(key) || 0) < 900) continue;
