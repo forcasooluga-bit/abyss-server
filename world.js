@@ -22,7 +22,7 @@
 
   // Lightweight decorative ocean artwork; gameplay and depth rendering stay procedural.
   const OCEAN_BG = new Image();
-  OCEAN_BG.src = 'ocean_background.svg';
+  OCEAN_BG.src = '/ocean_background.svg';
 
   // ------------------------------------------------------------------
   // Color helpers
@@ -2609,11 +2609,11 @@
         ctx.fillStyle = this._zoneWash;
         ctx.fillRect(0, underTop, w, underH);
 
-        // Subtle artwork layer for the sunlit surface and coral reef only.
-        // It is purely visual: existing zones, entities and collisions are unchanged.
-        if ((zone.id === 'surface' || zone.id === 'reef') && OCEAN_BG.complete && OCEAN_BG.naturalWidth > 0) {
+        // Visible artwork layer in the upper ocean; all gameplay remains procedural.
+        if ((zone.id === 'surface' || zone.id === 'reef' || zone.id === 'kelp') &&
+            OCEAN_BG.complete && OCEAN_BG.naturalWidth > 0) {
           ctx.save();
-          ctx.globalAlpha = zone.id === 'reef' ? 0.28 : 0.18;
+          ctx.globalAlpha = zone.id === 'surface' ? 0.62 : (zone.id === 'reef' ? 0.52 : 0.38);
           ctx.drawImage(OCEAN_BG, 0, underTop, w, underH);
           ctx.restore();
         }
