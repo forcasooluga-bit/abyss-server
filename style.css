@@ -3121,3 +3121,23 @@ body.quests-still .shop-card .shop-card-buy {
     animation: none;
   }
 }
+
+
+/* Small optional country flag control in the Options panel. */
+.flag-option {
+  cursor: pointer;
+}
+.flag-checkbox {
+  width: 17px;
+  height: 17px;
+  margin: 0 3px 0 auto;
+  accent-color: #20a9c8;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+.opt-country-note {
+  margin: -2px 4px 10px;
+  color: rgba(75, 50, 18, 0.72);
+  font-size: 10px;
+  line-height: 1.45;
+}
