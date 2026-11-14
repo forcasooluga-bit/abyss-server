@@ -4355,13 +4355,12 @@
         const nameWidth = ctx.measureText(playerLabel).width;
         const labelY = f.y - f.radius * 1.18;
         if (/^[A-Z]{2}$/.test(country)) {
-          const flag = String.fromCodePoint(country.charCodeAt(0) + 127397, country.charCodeAt(1) + 127397);
-          ctx.font = '12px system-ui, sans-serif';
-          const flagWidth = ctx.measureText(flag).width;
-          const gap = 4;
+          const flagWidth = 18;
+          const flagHeight = 12;
+          const gap = 5;
           const totalWidth = flagWidth + gap + nameWidth;
           const startX = f.x - totalWidth / 2;
-          ctx.fillText(flag, startX, labelY);
+          drawCountryFlag(ctx, country, startX, labelY - flagHeight + 2, flagWidth, flagHeight);
           ctx.font = nameFont;
           ctx.fillText(playerLabel, startX + flagWidth + gap, labelY);
         } else {
@@ -4856,6 +4855,30 @@
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
+  const countryFlagImages = Object.create(null);
+
+  function drawCountryFlag(ctx, code, x, y, width, height) {
+    const value = String(code || '').toLowerCase();
+    if (!/^[a-z]{2}$/.test(value)) return false;
+    let image = countryFlagImages[value];
+    if (!image) {
+      image = new Image();
+      image.crossOrigin = 'anonymous';
+      image.onload = function () { countryFlagImages[value] = image; };
+      image.onerror = function () { countryFlagImages[value] = null; };
+      countryFlagImages[value] = image;
+      image.src = 'https://flagcdn.com/' + Math.round(width * 2) + 'x' + Math.round(height * 2) + '/' + value + '.png';
+      return false;
+    }
+    if (!image.complete || !image.naturalWidth) return false;
+    ctx.save();
+    ctx.shadowColor = 'rgba(0, 8, 18, 0.75)';
+    ctx.shadowBlur = 3;
+    ctx.drawImage(image, x, y, width, height);
+    ctx.restore();
+    return true;
+  }
+
   function countryFlagEmoji(code) {
     const value = String(code || '').toUpperCase();
     if (!/^[A-Z]{2}$/.test(value)) return '';
@@ -5248,6 +5271,9 @@
         const entry = players[i];
         if (!entry || !entry.id) continue;
         const id = String(entry.id);
+        // The server roster includes everyone, including this client. The local
+        // player is already rendered from G.player; never create a remote copy.
+        if (A.Online && A.Online.id && id === String(A.Online.id())) continue;
         const stageIndex = A.clamp(entry.stageIndex | 0, 0, A.STAGES.length - 1);
         const stage = A.STAGES[stageIndex];
         if (!stage) continue;
