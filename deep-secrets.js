@@ -133,13 +133,21 @@
   }
 
   A.DeepSecrets = {
+    resetRun: function () {
+      active = null;
+      progress = 0;
+      timeLeft = 0;
+      nextAt = 34;
+      hiddenForRun = false;
+      hideCard();
+    },
     update: function (dt) {
       buildUI();
       deliverPending();
       if (toast && Date.now() > toastUntil) toast.classList.remove('visible');
       const game = A.game;
       if (!game || game.state !== 'playing') {
-        if (!active) hideCard();
+        hideCard();
         return;
       }
       if (!active && game.runTime >= nextAt && !hiddenForRun) start();
