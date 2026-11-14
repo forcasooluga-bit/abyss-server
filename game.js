@@ -3867,15 +3867,23 @@
     const gap = 5;
     const nameW = ctx.measureText(name).width;
     const tagW = ctx.measureText(tag).width;
-    const x = -(nameW + gap + tagW) / 2;
+    const country = A.Online && A.Online.showFlag && A.Online.showFlag()
+      ? A.Online.countryCode() : '';
+    const hasFlag = /^[A-Z]{2}$/.test(String(country || ''));
+    const flagW = hasFlag ? 18 : 0;
+    const flagGap = hasFlag ? 6 : 0;
+    const totalW = flagW + flagGap + nameW + gap + tagW;
+    const x = -totalW / 2;
+    if (hasFlag) drawCountryFlag(ctx, country, x, -6, flagW, 12);
+    const nameX = x + flagW + flagGap;
     ctx.lineWidth = 4;
     ctx.strokeStyle = 'rgba(2, 12, 20, 0.72)';
-    ctx.strokeText(name, x, 0);
-    ctx.strokeText(tag, x + nameW + gap, 0);
+    ctx.strokeText(name, nameX, 0);
+    ctx.strokeText(tag, nameX + nameW + gap, 0);
     ctx.fillStyle = '#a9f0ff';
-    ctx.fillText(name, x, 0);
+    ctx.fillText(name, nameX, 0);
     ctx.fillStyle = A.Levels && A.Levels.colorFor ? A.Levels.colorFor(level) : '#a9f0ff';
-    ctx.fillText(tag, x + nameW + gap, 0);
+    ctx.fillText(tag, nameX + nameW + gap, 0);
     ctx.restore();
     ctx.globalAlpha = 1;
   }
@@ -4338,11 +4346,9 @@
         ctx.globalAlpha = 0.68 + 0.32 * Math.abs(Math.sin(G.sim * 14));
       }
       A.FishArt.draw(ctx, f, G.sim, cheap);
-      if (f.isPlayer) {
-        const playerLabel = f.remote ? (f.name || 'Guest') : (G.playerName || 'Guest');
-        const country = f.remote
-          ? (f.showFlag ? String(f.countryCode || '').toUpperCase() : '')
-          : (A.Online && A.Online.showFlag && A.Online.showFlag() ? A.Online.countryCode() : '');
+      if (f.isPlayer && f.remote) {
+        const playerLabel = f.name || 'Guest';
+        const country = f.showFlag ? String(f.countryCode || '').toUpperCase() : '';
         ctx.save();
         ctx.globalAlpha = 0.94;
         const nameFont = '600 ' + Math.max(11, f.radius * 0.48) + 'px system-ui, sans-serif';
