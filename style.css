@@ -3152,3 +3152,47 @@ body.quests-still .shop-card .shop-card-buy {
   line-height: 1;
   filter: drop-shadow(0 1px 2px rgba(0, 12, 28, 0.65));
 }
+
+
+/* Deep Secrets timed event HUD */
+.deep-event-card {
+  position: fixed;
+  z-index: 28;
+  top: 50%;
+  left: 50%;
+  width: min(360px, calc(100vw - 34px));
+  transform: translate(-50%, -50%) translateY(-12px) scale(.96);
+  padding: 18px 20px 16px;
+  border: 1px solid rgba(115, 232, 241, .48);
+  border-radius: 18px;
+  color: #eaffff;
+  background: linear-gradient(145deg, rgba(5, 35, 53, .96), rgba(3, 13, 30, .96));
+  box-shadow: 0 18px 65px rgba(0, 0, 0, .48), inset 0 1px rgba(255,255,255,.08);
+  backdrop-filter: blur(12px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .22s ease, transform .22s ease;
+  font-family: "Trebuchet MS", sans-serif;
+}
+.deep-event-card.visible { opacity: 1; transform: translate(-50%, -50%) translateY(0) scale(1); }
+.deep-event-kicker { color: #72e9dc; font-size: 9px; font-weight: 900; letter-spacing: .22em; }
+.deep-event-title { margin: 7px 0 4px; font-size: 21px; font-weight: 900; letter-spacing: .04em; }
+.deep-event-desc { margin: 0; color: rgba(225,248,255,.78); font-size: 12px; line-height: 1.5; }
+.deep-event-meta { display: flex; justify-content: space-between; gap: 12px; margin-top: 14px; color: #bceef1; font-size: 10px; font-weight: 800; letter-spacing: .08em; }
+.deep-event-track { height: 7px; margin-top: 8px; overflow: hidden; border-radius: 99px; background: rgba(255,255,255,.12); }
+.deep-event-fill { width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #48d9d2, #c4ffad); transition: width .18s ease; }
+.deep-event-reward { margin-top: 12px; color: #ffe59a; font-size: 10px; font-weight: 900; letter-spacing: .1em; }
+.deep-event-toast {
+  position: fixed; z-index: 29; left: 50%; top: 18%;
+  transform: translate(-50%, -8px); padding: 10px 16px;
+  border: 1px solid rgba(115,232,241,.42); border-radius: 999px;
+  color: #eaffff; background: rgba(3,24,40,.92);
+  font: 900 11px "Trebuchet MS", sans-serif; letter-spacing: .12em;
+  opacity: 0; pointer-events: none; transition: opacity .2s ease, transform .2s ease;
+  white-space: nowrap; max-width: calc(100vw - 24px); overflow: hidden; text-overflow: ellipsis;
+}
+.deep-event-toast.visible { opacity: 1; transform: translate(-50%, 0); }
+@media (max-width: 620px) {
+  .deep-event-card { top: 46%; padding: 15px 16px; }
+  .deep-event-title { font-size: 18px; }
+}
