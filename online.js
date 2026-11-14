@@ -8,6 +8,33 @@
   let playerId = '';
   let roster = [];
   let reconnectTimer = 0;
+  let detectedCountryCode = '';
+  const FLAG_PREF_KEY = 'abyss_show_country_flag';
+  let flagEnabled = false;
+  try { flagEnabled = localStorage.getItem(FLAG_PREF_KEY) === '1'; } catch (error) {}
+
+  function detectCountry() {
+    try {
+      const cached = localStorage.getItem('abyss_country_code') || '';
+      if (/^[A-Z]{2}$/.test(cached)) detectedCountryCode = cached;
+    } catch (error) {}
+    fetch('https://ipapi.co/json/', { cache: 'no-store' })
+      .then(function (response) { if (!response.ok) throw new Error('Country lookup failed'); return response.json(); })
+      .then(function (data) {
+        const code = String(data && data.country_code || '').toUpperCase();
+        if (!/^[A-Z]{2}$/.test(code)) return;
+        detectedCountryCode = code;
+        try { localStorage.setItem('abyss_country_code', code); } catch (error) {}
+      })
+      .catch(function () {});
+  }
+
+  function showFlag() { return flagEnabled; }
+  function setShowFlag(enabled) {
+    flagEnabled = !!enabled;
+    try { localStorage.setItem(FLAG_PREF_KEY, flagEnabled ? '1' : '0'); } catch (error) {}
+  }
+  function countryCode() { return detectedCountryCode; }
 
   function connected() {
     return !!socket && socket.readyState === WebSocket.OPEN;
@@ -83,6 +110,8 @@
       }
     } catch (error) {}
 
+    player.showFlag = flagEnabled && /^[A-Z]{2}$/.test(detectedCountryCode);
+    player.countryCode = player.showFlag ? detectedCountryCode : '';
     try {
       socket.send(JSON.stringify({ type: 'state', player: player }));
     } catch (error) {}
@@ -92,9 +121,13 @@
     connected: connected,
     players: players,
     id: function () { return playerId; },
-    connect: connect
+    connect: connect,
+    showFlag: showFlag,
+    setShowFlag: setShowFlag,
+    countryCode: countryCode
   };
 
+  detectCountry();
   connect();
   window.setInterval(sendState, 33);
   window.addEventListener('online', connect);
