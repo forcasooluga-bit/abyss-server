@@ -32,6 +32,7 @@
     optSound: $('optSound'),
     optAlerts: $('optAlerts'),
     optMotion: $('optMotion'),
+    optCountryFlag: $('optCountryFlag'),
     optStats: $('optStats'),
     optAccount: $('optAccount')
   };
@@ -367,6 +368,7 @@
     }
     if (el.optAlerts) el.optAlerts.textContent = alertOn() ? 'ON' : 'OFF';
     if (el.optMotion) el.optMotion.textContent = motionOn() ? 'ON' : 'OFF';
+    if (el.optCountryFlag) el.optCountryFlag.checked = !!(A.Online && A.Online.showFlag && A.Online.showFlag());
     if (el.optAccount) {
       const s = A.Account ? A.Account.status() : { signedIn: false };
       el.optAccount.textContent = s.signedIn
@@ -530,6 +532,11 @@
         Q.setPref('motion', !motionOn());
         document.body.classList.toggle('quests-still', !motionOn());
         renderOptions();
+      });
+    }
+    if (el.optCountryFlag) {
+      el.optCountryFlag.addEventListener('change', function () {
+        if (A.Online && A.Online.setShowFlag) A.Online.setShowFlag(el.optCountryFlag.checked);
       });
     }
     document.addEventListener('keydown', function (ev) {
