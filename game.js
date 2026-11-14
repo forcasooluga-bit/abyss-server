@@ -2820,6 +2820,7 @@
       const gain = baseGain * (p.stageIndex < A.ANGLER_TIER ? 4 : 1);
       p.xp += gain;
       G.eaten++;
+    if (A.DeepSecrets) A.DeepSecrets.onFishEaten(f);
       if (A.Quests) A.Quests.eatFish(f);
       addPopup(f.x, f.y - f.radius - 14,
         (f.predator ? (f.name || 'PREDATOR').toUpperCase() + ' SLAIN' : 'IMPALED') + ' +' + gain + ' XP',
@@ -5134,6 +5135,7 @@
       A.Monsters.update(dt);
       return;
     }
+    if (A.DeepSecrets) A.DeepSecrets.update(dt);
     G.world.update(dt, G.sim, G.camera);
     updateMotes(dt);
     updateInk(dt);
