@@ -18,15 +18,34 @@
       const cached = localStorage.getItem('abyss_country_code') || '';
       if (/^[A-Z]{2}$/.test(cached)) detectedCountryCode = cached;
     } catch (error) {}
-    fetch('https://ipapi.co/json/', { cache: 'no-store' })
-      .then(function (response) { if (!response.ok) throw new Error('Country lookup failed'); return response.json(); })
+
+    // Try two CORS-enabled country lookup services. Only the ISO country code
+    // is kept; the raw IP address is never stored or sent to the game server.
+    fetch('https://ipwho.is/', { cache: 'no-store' })
+      .then(function (response) {
+        if (!response.ok) throw new Error('Country lookup failed');
+        return response.json();
+      })
       .then(function (data) {
-        const code = String(data && data.country_code || '').toUpperCase();
-        if (!/^[A-Z]{2}$/.test(code)) return;
+        const code = String(data && data.success !== false && data.country_code || '').toUpperCase();
+        if (!/^[A-Z]{2}$/.test(code)) throw new Error('No country code');
         detectedCountryCode = code;
         try { localStorage.setItem('abyss_country_code', code); } catch (error) {}
       })
-      .catch(function () {});
+      .catch(function () {
+        return fetch('https://ipapi.co/json/', { cache: 'no-store' })
+          .then(function (response) {
+            if (!response.ok) throw new Error('Country lookup failed');
+            return response.json();
+          })
+          .then(function (data) {
+            const code = String(data && data.country_code || '').toUpperCase();
+            if (!/^[A-Z]{2}$/.test(code)) return;
+            detectedCountryCode = code;
+            try { localStorage.setItem('abyss_country_code', code); } catch (error) {}
+          })
+          .catch(function () {});
+      });
   }
 
   function showFlag() { return flagEnabled; }
