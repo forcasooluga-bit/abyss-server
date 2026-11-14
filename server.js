@@ -161,7 +161,9 @@ function publicRoster() {
     y: player.y,
     angle: player.angle,
     stageIndex: player.stageIndex,
-    xp: player.xp
+    xp: player.xp,
+    showFlag: player.showFlag,
+    countryCode: player.showFlag ? player.countryCode : ''
   }));
 }
 
@@ -313,6 +315,8 @@ wss.on('connection', (ws) => {
     player.angle = Math.max(-Math.PI * 4, Math.min(Math.PI * 4, angle));
     player.stageIndex = stageIndex;
     player.xp = Math.max(0, Math.min(2147483647, Math.floor(xp)));
+    player.showFlag = state.showFlag === true && /^[A-Z]{2}$/.test(String(state.countryCode || ''));
+    player.countryCode = player.showFlag ? String(state.countryCode).toUpperCase() : '';
   });
 
   ws.on('close', () => {
