@@ -3196,3 +3196,111 @@ body.quests-still .shop-card .shop-card-buy {
   .deep-event-card { top: 46%; padding: 15px 16px; }
   .deep-event-title { font-size: 18px; }
 }
+
+
+/* ---------------- Home layout refresh ---------------- */
+.menu-shell {
+  position: relative;
+  width: min(1240px, 100%);
+  min-height: min(900px, calc(100vh - 44px));
+  padding-top: 190px;
+}
+
+.home-topbar {
+  position: absolute;
+  top: 18px;
+  left: clamp(18px, 2.5vw, 34px);
+  right: clamp(18px, 2.5vw, 34px);
+  z-index: 3;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  text-align: left;
+}
+
+.home-topbar .account-card {
+  flex: 0 1 320px;
+  width: min(320px, 32vw);
+  max-width: 320px;
+  max-height: 210px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 11px 13px;
+}
+
+.home-topbar .account-note {
+  margin: 7px 0;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.home-topbar .account-actions { gap: 7px; }
+.home-topbar .account-actions .btn {
+  padding: 8px 13px;
+  font-size: 9px;
+}
+
+.home-start {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin: 10px 4% 0 auto;
+}
+
+.home-start .name-card {
+  width: clamp(220px, 25vw, 310px);
+  max-width: none;
+  margin: 0;
+  padding: 11px 13px;
+}
+
+.home-start .name-input { margin-top: 6px; }
+.home-start .name-hint { font-size: 9px; }
+.home-start .home-play {
+  min-width: 112px;
+  padding: 17px 25px;
+  font-size: 13px;
+  letter-spacing: .14em;
+}
+
+.menu-head { margin-top: 0; }
+
+@media (max-width: 760px) {
+  .menu-shell {
+    min-height: 0;
+    padding: 18px 14px 18px;
+  }
+  .home-topbar {
+    position: static;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .home-topbar .account-card {
+    width: 100%;
+    max-width: none;
+    max-height: 170px;
+    flex-basis: auto;
+  }
+  .home-start {
+    width: 100%;
+    margin: 0;
+    justify-content: center;
+  }
+  .home-start .name-card {
+    width: auto;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .home-start .home-play { min-width: 94px; padding: 15px 17px; }
+}
+
+@media (max-height: 700px) and (min-width: 761px) {
+  .menu-shell { padding-top: 165px; }
+  .home-topbar .account-card { max-height: 155px; }
+  .home-start { margin-top: 4px; }
+}
