@@ -16,7 +16,6 @@
     user: $('accountUser'),
     avatar: $('accountAvatar'),
     name: $('accountName'),
-    countryFlag: $('accountCountryFlag'),
     crystals: $('accountCrystals'),
     level: $('accountLevel'),
     profile: $('accountProfile'),
@@ -323,31 +322,6 @@
     return A.formatNumber ? A.formatNumber(n | 0) : String(n | 0);
   }
 
-  function updateCountryFlag() {
-    if (!el.countryFlag) return;
-    let code = '';
-    try {
-      code = A.Online && typeof A.Online.countryCode === 'function'
-        ? String(A.Online.countryCode() || '').toUpperCase()
-        : String(localStorage.getItem('abyss_country_code') || '').toUpperCase();
-    } catch (error) {}
-    if (!/^[A-Z]{2}$/.test(code)) {
-      el.countryFlag.hidden = true;
-      el.countryFlag.textContent = '';
-      return;
-    }
-    el.countryFlag.hidden = false;
-    const image = document.createElement('img');
-    image.alt = code + ' flag';
-    image.src = 'https://flagcdn.com/w40/' + code.toLowerCase() + '.png';
-    image.onerror = function () {
-      el.countryFlag.textContent = code;
-    };
-    el.countryFlag.replaceChildren(image);
-  }
-
-  window.addEventListener('abyss-country-detected', updateCountryFlag);
-
   function render(snap) {
     const s = snap || A.Account.status();
     if (!el.card) return;
@@ -389,7 +363,6 @@
     if (signedIn) {
       if (el.avatar) el.avatar.textContent = initials(s.username);
       if (el.name) el.name.textContent = s.username;
-      updateCountryFlag();
       const crystals = s.profile ? s.profile.crystals | 0 : 0;
       if (el.crystals) el.crystals.textContent = num(crystals);
       if (el.level) {
