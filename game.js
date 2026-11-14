@@ -4338,31 +4338,33 @@
         ctx.globalAlpha = 0.68 + 0.32 * Math.abs(Math.sin(G.sim * 14));
       }
       A.FishArt.draw(ctx, f, G.sim, cheap);
-      if (f.isPlayer) {
-        const playerLabel = f.remote ? (f.name || 'Guest') : (G.playerName || 'Guest');
-        const country = f.remote ? (f.showFlag ? f.countryCode : '') :
-          (A.Online && A.Online.showFlag && A.Online.showFlag() ? A.Online.countryCode() : '');
+      if (f.remote && f.name) {
+        const country = f.showFlag ? String(f.countryCode || '').toUpperCase() : '';
         ctx.save();
         ctx.globalAlpha = 0.94;
-        ctx.font = '600 ' + Math.max(11, f.radius * 0.48) + 'px system-ui, sans-serif';
-        ctx.textAlign = 'center';
+        const nameFont = '600 ' + Math.max(11, f.radius * 0.48) + 'px system-ui, sans-serif';
+        ctx.font = nameFont;
+        ctx.textAlign = 'left';
         ctx.textBaseline = 'bottom';
         ctx.fillStyle = '#eafaff';
         ctx.shadowColor = 'rgba(0, 12, 28, 0.9)';
         ctx.shadowBlur = 5;
+        const nameWidth = ctx.measureText(f.name).width;
         const labelY = f.y - f.radius * 1.18;
-        if (country && /^[A-Z]{2}$/.test(country)) {
+        if (/^[A-Z]{2}$/.test(country)) {
           const flag = String.fromCodePoint(country.charCodeAt(0) + 127397, country.charCodeAt(1) + 127397);
-          ctx.font = '11px system-ui, sans-serif';
+          ctx.font = '12px system-ui, sans-serif';
           const flagWidth = ctx.measureText(flag).width;
-          const nameWidth = ctx.measureText(playerLabel).width;
           const gap = 4;
-          const startX = f.x - (flagWidth + gap + nameWidth) / 2;
-          ctx.fillText(flag, startX + flagWidth / 2, labelY);
-          ctx.font = '600 ' + Math.max(11, f.radius * 0.48) + 'px system-ui, sans-serif';
-          ctx.fillText(playerLabel, startX + flagWidth + gap + nameWidth / 2, labelY);
+          const totalWidth = flagWidth + gap + nameWidth;
+          const startX = f.x - totalWidth / 2;
+          ctx.fillText(flag, startX, labelY);
+          ctx.font = nameFont;
+          ctx.fillText(f.name, startX + flagWidth + gap, labelY);
         } else {
-          ctx.fillText(playerLabel, f.x, labelY);
+          ctx.textAlign = 'center';
+          ctx.font = nameFont;
+          ctx.fillText(f.name, f.x, labelY);
         }
         ctx.restore();
       }
