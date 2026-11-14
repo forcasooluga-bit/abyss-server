@@ -4338,7 +4338,10 @@
         ctx.globalAlpha = 0.68 + 0.32 * Math.abs(Math.sin(G.sim * 14));
       }
       A.FishArt.draw(ctx, f, G.sim, cheap);
-      if (f.remote && f.name) {
+      if (f.isPlayer) {
+        const playerLabel = f.remote ? (f.name || 'Guest') : (G.playerName || 'Guest');
+        const country = f.remote ? (f.showFlag ? f.countryCode : '') :
+          (A.Online && A.Online.showFlag && A.Online.showFlag() ? A.Online.countryCode() : '');
         ctx.save();
         ctx.globalAlpha = 0.94;
         ctx.font = '600 ' + Math.max(11, f.radius * 0.48) + 'px system-ui, sans-serif';
@@ -4347,7 +4350,20 @@
         ctx.fillStyle = '#eafaff';
         ctx.shadowColor = 'rgba(0, 12, 28, 0.9)';
         ctx.shadowBlur = 5;
-        ctx.fillText(f.name, f.x, f.y - f.radius * 1.18);
+        const labelY = f.y - f.radius * 1.18;
+        if (country && /^[A-Z]{2}$/.test(country)) {
+          const flag = String.fromCodePoint(country.charCodeAt(0) + 127397, country.charCodeAt(1) + 127397);
+          ctx.font = '11px system-ui, sans-serif';
+          const flagWidth = ctx.measureText(flag).width;
+          const nameWidth = ctx.measureText(playerLabel).width;
+          const gap = 4;
+          const startX = f.x - (flagWidth + gap + nameWidth) / 2;
+          ctx.fillText(flag, startX + flagWidth / 2, labelY);
+          ctx.font = '600 ' + Math.max(11, f.radius * 0.48) + 'px system-ui, sans-serif';
+          ctx.fillText(playerLabel, startX + flagWidth + gap + nameWidth / 2, labelY);
+        } else {
+          ctx.fillText(playerLabel, f.x, labelY);
+        }
         ctx.restore();
       }
       // Carried equipment rides the same transform as the animal that owns it,
