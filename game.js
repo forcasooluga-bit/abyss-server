@@ -475,6 +475,7 @@
     G.popups.length = 0;
     if (A.Collection) A.Collection.reset();
     G.runTime = 0;
+    if (A.DeepSecrets) A.DeepSecrets.resetRun();
     G.eaten = 0;
     if (A.Quests) A.Quests.diveStart();
     G.flash = 0;
