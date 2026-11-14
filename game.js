@@ -4338,8 +4338,11 @@
         ctx.globalAlpha = 0.68 + 0.32 * Math.abs(Math.sin(G.sim * 14));
       }
       A.FishArt.draw(ctx, f, G.sim, cheap);
-      if (f.remote && f.name) {
-        const country = f.showFlag ? String(f.countryCode || '').toUpperCase() : '';
+      if (f.isPlayer) {
+        const playerLabel = f.remote ? (f.name || 'Guest') : (G.playerName || 'Guest');
+        const country = f.remote
+          ? (f.showFlag ? String(f.countryCode || '').toUpperCase() : '')
+          : (A.Online && A.Online.showFlag && A.Online.showFlag() ? A.Online.countryCode() : '');
         ctx.save();
         ctx.globalAlpha = 0.94;
         const nameFont = '600 ' + Math.max(11, f.radius * 0.48) + 'px system-ui, sans-serif';
@@ -4349,7 +4352,7 @@
         ctx.fillStyle = '#eafaff';
         ctx.shadowColor = 'rgba(0, 12, 28, 0.9)';
         ctx.shadowBlur = 5;
-        const nameWidth = ctx.measureText(f.name).width;
+        const nameWidth = ctx.measureText(playerLabel).width;
         const labelY = f.y - f.radius * 1.18;
         if (/^[A-Z]{2}$/.test(country)) {
           const flag = String.fromCodePoint(country.charCodeAt(0) + 127397, country.charCodeAt(1) + 127397);
@@ -4360,11 +4363,11 @@
           const startX = f.x - totalWidth / 2;
           ctx.fillText(flag, startX, labelY);
           ctx.font = nameFont;
-          ctx.fillText(f.name, startX + flagWidth + gap, labelY);
+          ctx.fillText(playerLabel, startX + flagWidth + gap, labelY);
         } else {
           ctx.textAlign = 'center';
           ctx.font = nameFont;
-          ctx.fillText(f.name, f.x, labelY);
+          ctx.fillText(playerLabel, f.x, labelY);
         }
         ctx.restore();
       }
