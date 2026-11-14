@@ -31,6 +31,7 @@
         if (!/^[A-Z]{2}$/.test(code)) throw new Error('No country code');
         detectedCountryCode = code;
         try { localStorage.setItem('abyss_country_code', code); } catch (error) {}
+        window.dispatchEvent(new Event('abyss-country-detected'));
       })
       .catch(function () {
         return fetch('https://ipapi.co/json/', { cache: 'no-store' })
@@ -43,6 +44,7 @@
             if (!/^[A-Z]{2}$/.test(code)) return;
             detectedCountryCode = code;
             try { localStorage.setItem('abyss_country_code', code); } catch (error) {}
+            window.dispatchEvent(new Event('abyss-country-detected'));
           })
           .catch(function () {});
       });
