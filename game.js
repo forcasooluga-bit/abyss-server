@@ -4861,13 +4861,14 @@
     const value = String(code || '').toLowerCase();
     if (!/^[a-z]{2}$/.test(value)) return false;
     let image = countryFlagImages[value];
+    if (image === false) return false;
     if (!image) {
       image = new Image();
       image.crossOrigin = 'anonymous';
       image.onload = function () { countryFlagImages[value] = image; };
       image.onerror = function () { countryFlagImages[value] = null; };
       countryFlagImages[value] = image;
-      image.src = 'https://flagcdn.com/' + Math.round(width * 2) + 'x' + Math.round(height * 2) + '/' + value + '.png';
+      image.src = 'https://flagcdn.com/w40/' + value + '.png';
       return false;
     }
     if (!image.complete || !image.naturalWidth) return false;
