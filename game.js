@@ -4851,6 +4851,12 @@
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
+  function countryFlagEmoji(code) {
+    const value = String(code || '').toUpperCase();
+    if (!/^[A-Z]{2}$/.test(value)) return '';
+    return String.fromCodePoint(value.charCodeAt(0) + 127397, value.charCodeAt(1) + 127397);
+  }
+
   function drawLeaderboard() {
     const p = G.player;
     if (!p) return;
@@ -4875,12 +4881,17 @@
         if (isMe) mine = true;
         rows.push({
           name: String(entry.name || 'Guest'),
+          countryCode: entry.showFlag === true ? String(entry.countryCode || '') : '',
           xp: entry.xp | 0,
           color: isMe ? body : 'rgba(126, 216, 240, 0.9)',
           me: isMe
         });
       }
-      if (!mine) rows.push({ name: myName, xp: myXp, color: body, me: true });
+      if (!mine) rows.push({
+        name: myName,
+        countryCode: A.Online && A.Online.showFlag && A.Online.showFlag() ? A.Online.countryCode() : '',
+        xp: myXp, color: body, me: true
+      });
     } else {
       rows = [{
         name: 'YOU',
@@ -4904,6 +4915,7 @@
       html += '<li class="' + (row.me ? 'me' : '') + '">' +
         '<span class="lb-rank">' + (i + 1) + '</span>' +
         '<span class="lb-dot" style="background:' + row.color + ';color:' + row.color + '"></span>' +
+        (row.countryCode ? '<span class="lb-flag">' + escapeHtml(countryFlagEmoji(row.countryCode)) + '</span>' : '') +
         '<span class="lb-name">' + escapeHtml(row.name) + '</span>' +
         '<span class="lb-xp">' + A.formatNumber(row.xp) + '</span>' +
         '</li>';
@@ -5243,6 +5255,8 @@
           remote.targetY = y;
           remote.targetAngle = angle;
           remote.name = String(entry.name || 'Guest').slice(0, 16);
+          remote.showFlag = entry.showFlag === true && /^[A-Z]{2}$/.test(String(entry.countryCode || ''));
+          remote.countryCode = remote.showFlag ? String(entry.countryCode).toUpperCase() : '';
           remote.xp = Math.max(0, Number(entry.xp) || 0);
           if (remote.stageIndex !== stageIndex) {
             remote.stageIndex = stageIndex;
@@ -5259,6 +5273,8 @@
             isPlayer: true,
             dead: false,
             name: String(entry.name || 'Guest').slice(0, 16),
+            showFlag: entry.showFlag === true && /^[A-Z]{2}$/.test(String(entry.countryCode || '')),
+            countryCode: entry.showFlag === true && /^[A-Z]{2}$/.test(String(entry.countryCode || '')) ? String(entry.countryCode).toUpperCase() : '',
             x: x, y: y, angle: angle,
             targetX: x, targetY: y, targetAngle: angle,
             stageIndex: stageIndex,
