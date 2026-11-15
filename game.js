@@ -1270,7 +1270,11 @@
     dom.soundBtn.addEventListener('click', toggleSound);
     dom.pauseSoundBtn.addEventListener('click', toggleSound);
     dom.abilityBtn.addEventListener('click', useAbility);
-    if (dom.shotBtn) dom.shotBtn.addEventListener('click', tridentCharge);
+    if (dom.shotBtn) dom.shotBtn.addEventListener('click', function () {
+      const p = G.player;
+      if (p && p.weapon === 'abyss_shuriken') throwShuriken();
+      else tridentCharge();
+    });
 
     const nameFields = [dom.nameInput, dom.pauseNameInput];
     for (let i = 0; i < nameFields.length; i++) {
