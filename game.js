@@ -2883,8 +2883,7 @@
   const SHURIKEN = {
     cooldown: 0.9,
     speed: 980,
-    lift: 130,
-    gravity: 420,
+    gravity: 0,
     life: 1.3,
     spin: 17,
     damage: 1 / 3
@@ -2902,8 +2901,9 @@
       owner: p,
       x: from.x,
       y: from.y,
-      vx: Math.cos(p.angle) * SHURIKEN.lift,
-      vy: -SHURIKEN.speed,
+      // Throw forward in the direction the fish is facing (not upward).
+      vx: Math.cos(p.angle) * SHURIKEN.speed,
+      vy: Math.sin(p.angle) * SHURIKEN.speed,
       spin: 0,
       age: 0,
       hit: 0,
