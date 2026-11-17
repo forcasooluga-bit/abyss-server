@@ -1,0 +1,253 @@
+/* ABYSS.IO — COMPLETE DEEP-SEA UI REDESIGN
+   Visual-only overrides. Gameplay, layout logic and controls stay untouched. */
+:root {
+  --abyss-ink: #e9fbff;
+  --abyss-muted: #8db8ca;
+  --abyss-cyan: #5cecff;
+  --abyss-blue: #278bd0;
+  --abyss-deep: #041522;
+  --abyss-panel: rgba(5, 25, 42, .88);
+  --abyss-line: rgba(94, 220, 255, .25);
+  --abyss-glow: rgba(43, 202, 255, .22);
+}
+html, body { background: #03111d; color: var(--abyss-ink); }
+#app { background:
+  radial-gradient(ellipse at 50% 0%, rgba(21,119,160,.18), transparent 48%),
+  linear-gradient(180deg, rgba(2,17,29,.08), rgba(1,9,19,.3)); }
+#game { filter: saturate(1.08) contrast(1.025); }
+.vignette { background: radial-gradient(ellipse at center, transparent 45%, rgba(0,8,18,.3) 100%); }
+
+/* HUD: luminous instrument panels */
+#hud .panel, #statusPanel, .stat-panel, .board-panel, .minimap-wrap {
+  background: linear-gradient(145deg, rgba(9,39,59,.91), rgba(3,17,31,.88) 72%);
+  border: 1px solid rgba(91,218,255,.25);
+  border-radius: 15px;
+  box-shadow: 0 12px 34px rgba(0,7,18,.32), inset 0 1px 0 rgba(183,244,255,.09), inset 0 0 22px rgba(29,151,201,.055);
+}
+#statusPanel { border-color: rgba(91,225,255,.34); }
+.portrait-wrap { border: 1px solid rgba(91,225,255,.28); border-radius: 12px; background: linear-gradient(145deg, rgba(30,124,157,.3), rgba(2,18,32,.8)); box-shadow: inset 0 0 18px rgba(74,220,255,.12); overflow: hidden; }
+#fishName { color: #f0fcff; text-shadow: 0 0 18px rgba(71,211,255,.18); }
+.stage-tag { color: #032031; background: linear-gradient(120deg,#8af4ff,#39bce9); border: 1px solid rgba(206,250,255,.7); box-shadow: 0 0 15px rgba(63,211,255,.2); }
+.role, .vital-label, .stat-label, .xp-head, .panel-title { color: #8ec8dc; }
+.vital-value, .stat-value, #xpText { color: #edfbff; }
+.bar { background: rgba(1,10,21,.82); border: 1px solid rgba(110,207,235,.16); border-radius: 99px; overflow: hidden; box-shadow: inset 0 2px 5px rgba(0,0,0,.4); }
+.bar.health i { background: linear-gradient(90deg,#ff6482,#ff9e9c); box-shadow: 0 0 12px rgba(255,94,132,.32); }
+.bar.hunger i { background: linear-gradient(90deg,#ffb65e,#ffe18a); }
+.bar.xp i { background: linear-gradient(90deg,#168bd2,#4cecff 70%,#a3fff1); box-shadow: 0 0 14px rgba(64,221,255,.48); }
+.pip { background: rgba(73,151,180,.24); border: 1px solid rgba(100,212,244,.16); }
+.pip.done { background: linear-gradient(90deg,#1c9fd7,#70f4ff); box-shadow: 0 0 10px rgba(68,220,255,.45); }
+.stat-panel { border-radius: 13px; }
+.board-panel .panel-title { color: #70dff5; letter-spacing: .18em; }
+#leaderboard li { border-bottom: 1px solid rgba(104,194,222,.1); }
+#leaderboard li.me { background: rgba(39,164,205,.16); border-radius: 7px; }
+#leaderboard .lb-name { color: #dff8ff; }
+#leaderboard .lb-xp { color: #80dff2; }
+.minimap-wrap { padding: 7px; }
+#minimap { border: 1px solid rgba(89,209,239,.2); }
+
+/* Main menu: deep-ocean command centre */
+.overlay { background: radial-gradient(ellipse at 50% 18%, rgba(17,112,151,.22), transparent 56%), rgba(1,9,19,.82); }
+.menu-shell, .modal, .auth-card {
+  color: var(--abyss-ink);
+  background:
+    linear-gradient(145deg, rgba(11,42,62,.97), rgba(3,17,31,.98) 62%),
+    #061a2a;
+  border: 1px solid rgba(91,220,255,.35);
+  box-shadow: 0 28px 90px rgba(0,5,14,.62), 0 0 42px rgba(24,164,211,.11), inset 0 1px 0 rgba(197,246,255,.12);
+}
+.menu-shell { border-radius: 25px; }
+.brand { filter: drop-shadow(0 10px 24px rgba(27,177,220,.18)); }
+.brand img { border: 1px solid rgba(102,226,255,.28); box-shadow: 0 0 30px rgba(41,188,233,.16); }
+.tagline { color: #78e9ff; text-shadow: 0 0 22px rgba(69,214,255,.24); }
+.blurb, .menu-foot, .modal-sub { color: #9dc4d4; }
+.evo-card {
+  background: linear-gradient(155deg, rgba(15,58,81,.88), rgba(3,20,35,.94));
+  border: 1px solid rgba(87,203,235,.23);
+  border-radius: 13px;
+  box-shadow: inset 0 1px 0 rgba(198,244,255,.08), 0 8px 18px rgba(0,7,18,.18);
+}
+.evo-card:hover { border-color: rgba(102,233,255,.7); box-shadow: 0 8px 24px rgba(17,165,211,.14); }
+.evo-step { color: #6eddf4; }
+.evo-name { color: #e5faff; }
+.evo-ability { color: #8eb8ca; }
+.name-card, .account-card, .controls-card, .best-card {
+  background: linear-gradient(145deg, rgba(10,43,63,.88), rgba(3,20,34,.9));
+  border: 1px solid rgba(82,198,231,.22);
+  border-radius: 14px;
+  box-shadow: inset 0 1px 0 rgba(190,239,255,.06);
+}
+.account-card.has-user { border-color: rgba(85,225,203,.4); }
+.account-head, .account-line { color: #e7faff; }
+.account-mode { background: rgba(48,130,163,.2); color: #9bdff0; border: 1px solid rgba(93,204,235,.22); }
+.account-mode.online { color: #03251f; border: 0; }
+.account-note, .profile-sync { color: #91b7c8; }
+.account-avatar { color: #052334; background: linear-gradient(135deg,#8df3ff,#36a9d8); box-shadow: 0 0 18px rgba(62,208,244,.2); }
+.account-level { color: #b9efff; background: rgba(35,139,184,.2); border: 1px solid rgba(88,207,241,.22); }
+.account-crystals { color: #ffe5a0; }
+.profile-grid > div { background: rgba(2,17,30,.62); border: 1px solid rgba(91,198,228,.16); border-radius: 9px; }
+.profile-grid span { color: #7eafc2; }
+.profile-grid b { color: #e8faff; }
+.controls-card ul { color: #9fc5d5; }
+.controls-card b { color: #dff9ff; }
+.best-value { color: #d9f7ff; }
+
+/* Every button gets the same crisp aquatic control language */
+.btn, .quest-chip, .quest-tab, .quest-go, .shop-card-buy, .quest-card-claim, .auth-tab, .field-eye, .auth-close, .quest-close, #abilityBtn, #shotBtn {
+  -webkit-tap-highlight-color: transparent;
+  transition: transform .18s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease, filter .2s ease;
+}
+.btn {
+  color: #dffaff;
+  border: 1px solid rgba(93,213,245,.34);
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(21,76,103,.9), rgba(7,35,54,.96));
+  box-shadow: 0 5px 14px rgba(0,8,18,.22), inset 0 1px 0 rgba(206,248,255,.12);
+  letter-spacing: .11em;
+}
+.btn:hover { color: #fff; border-color: rgba(113,239,255,.82); background: linear-gradient(180deg,rgba(31,111,145,.96),rgba(8,54,78,.98)); box-shadow: 0 8px 22px rgba(13,159,204,.2), inset 0 1px 0 rgba(225,252,255,.18); transform: translateY(-2px); }
+.btn:active { transform: translateY(1px) scale(.985); }
+.btn.primary {
+  color: #032132;
+  border: 1px solid rgba(197,250,255,.8);
+  background: linear-gradient(115deg,#a2f8ff 0%,#50d9f4 45%,#259fd9 100%);
+  box-shadow: 0 9px 26px rgba(31,174,221,.3), inset 0 1px 0 rgba(255,255,255,.72);
+  text-shadow: 0 1px 0 rgba(255,255,255,.2);
+}
+.btn.primary:hover { color: #001c2b; background: linear-gradient(115deg,#c0fbff,#66e6ff 48%,#43b7ec); box-shadow: 0 12px 32px rgba(42,195,238,.4), inset 0 1px 0 #fff; }
+.btn.ghost { color: #bceaf6; background: linear-gradient(180deg,rgba(10,45,66,.8),rgba(4,24,40,.88)); border-color: rgba(92,194,225,.25); }
+.btn.ghost:hover { color: #f2fdff; background: linear-gradient(180deg,rgba(20,86,113,.9),rgba(6,42,62,.95)); border-color: rgba(100,226,255,.68); }
+.btn[disabled], .btn:disabled { opacity: .45; filter: saturate(.55); }
+.discord-btn { border-color: rgba(112,160,255,.35); }
+.discord-btn:hover { border-color: rgba(139,177,255,.8); }
+.name-input, .field-input {
+  color: #effcff; background: rgba(1,13,25,.82);
+  border: 1px solid rgba(84,191,224,.3); border-radius: 9px;
+  box-shadow: inset 0 2px 8px rgba(0,0,0,.24);
+}
+.name-input:focus, .field-input:focus { border-color: #5de4ff; box-shadow: 0 0 0 3px rgba(58,204,240,.12), 0 0 18px rgba(45,190,230,.12); }
+.name-input::placeholder, .field-input::placeholder { color: #638da0; }
+.name-hint, .modal-hint { color: #7099ab; }
+
+/* Missions + shop panels */
+.quest-frame {
+  color: #e7faff;
+  background: linear-gradient(145deg,rgba(8,37,57,.985),rgba(2,15,28,.99));
+  border: 1px solid rgba(83,214,246,.36);
+  border-radius: 20px;
+  box-shadow: 0 28px 90px rgba(0,4,13,.68), 0 0 48px rgba(24,156,202,.13), inset 0 1px 0 rgba(195,245,255,.1);
+}
+.quest-tabs { background: linear-gradient(90deg,rgba(9,48,69,.9),rgba(3,22,38,.8)); border-bottom: 1px solid rgba(88,199,230,.2); }
+.quest-tab { color: #81adbf; border: 1px solid transparent; border-radius: 8px; }
+.quest-tab:hover { color: #d9f8ff; background: rgba(53,163,197,.12); }
+.quest-tab.active { color: #052537; background: linear-gradient(120deg,#9bf4ff,#42c5e9); border-color: rgba(210,252,255,.7); box-shadow: 0 4px 16px rgba(46,192,229,.2); }
+.quest-close, .auth-close { color: #9bc7d8; background: rgba(14,54,75,.55); border: 1px solid rgba(90,194,225,.24); border-radius: 9px; }
+.quest-close:hover, .auth-close:hover { color: white; background: rgba(31,112,142,.65); border-color: #68e2ff; }
+.quest-heading { color: #e6fbff; text-shadow: 0 0 20px rgba(70,211,246,.12); }
+.quest-heading::first-letter { color: #6fe7ff; }
+.quest-sub { color: #8eb9ca; }
+.quest-card, .shop-card {
+  color: #e7faff;
+  background: linear-gradient(145deg,rgba(12,48,68,.88),rgba(3,21,36,.96));
+  border: 1px solid rgba(83,190,222,.23);
+  border-radius: 13px;
+  box-shadow: inset 0 1px 0 rgba(190,240,255,.06), 0 8px 18px rgba(0,5,15,.16);
+}
+.quest-card:hover, .shop-card:hover { border-color: rgba(95,225,255,.58); box-shadow: 0 10px 26px rgba(12,133,177,.16); transform: translateY(-2px); }
+.quest-card.ready { border-color: rgba(83,234,205,.55); background: linear-gradient(145deg,rgba(10,68,69,.82),rgba(3,29,40,.96)); }
+.quest-card-tag { color: #89d9ed; background: rgba(34,135,166,.2); border: 1px solid rgba(92,208,235,.2); }
+.quest-card.ready .quest-card-tag { color: #9affdf; }
+.quest-card-icon { background: linear-gradient(145deg,rgba(25,116,149,.34),rgba(4,32,49,.9)); border: 1px solid rgba(87,210,240,.28); border-radius: 11px; }
+.quest-card-glyph { color: #8ceaff; }
+.quest-card-text { color: #dff6fc; }
+.quest-card-reward b, .quest-card-reward .quest-xp { color: #a4f2ff; }
+.quest-card-bar { background: rgba(0,10,20,.8); border: 1px solid rgba(88,187,216,.18); border-radius: 99px; }
+.quest-card-bar i { background: linear-gradient(90deg,#168fc9,#64eaff); }
+.quest-card.ready .quest-card-bar i { background: linear-gradient(90deg,#1cba9b,#8dffda); }
+.quest-card-claim, .shop-card-buy { color: #032333; background: linear-gradient(110deg,#9af4ff,#37bce4); border: 1px solid rgba(197,250,255,.65); border-radius: 8px; box-shadow: 0 4px 13px rgba(30,170,210,.18); }
+.quest-card-claim:hover, .shop-card-buy:hover { color: #001b28; filter: brightness(1.12); box-shadow: 0 7px 18px rgba(41,196,234,.3); transform: translateY(-1px); }
+.quest-card.claimed .quest-card-claim, .shop-card.equipped .shop-card-buy { color: #9eeedb; background: rgba(22,117,104,.25); border-color: rgba(91,221,185,.32); box-shadow: none; }
+.chest-strip { background: linear-gradient(145deg,rgba(7,35,53,.8),rgba(2,17,30,.85)); border: 1px solid rgba(82,190,220,.2); border-radius: 13px; }
+.chest-title { color: #9beaff; }
+.chest-timer, .chest-cell .chest-need { color: #84afc0; }
+.chest-count { color: #dffaff; background: rgba(32,126,157,.2); border: 1px solid rgba(89,203,230,.22); }
+.chest-cell { background: rgba(3,21,36,.72); border: 1px solid rgba(87,185,215,.2); border-radius: 10px; }
+.chest-cell.ready { border-color: rgba(99,232,199,.55); box-shadow: 0 0 16px rgba(54,202,166,.1); }
+.chest-cell .chest-pay { color: #ffe6a4; }
+.zone-list li { background: rgba(4,27,43,.7); border: 1px solid rgba(80,177,207,.16); border-radius: 8px; }
+.zone-list li b { color: #dff7ff; }
+.zone-list li.visited { border-color: rgba(78,215,240,.35); }
+.opt-row { border-bottom: 1px solid rgba(88,185,214,.14); }
+.opt-label { color: #c7edf7; }
+.opt-value { color: #87b2c3; }
+.opt-row.danger .opt-btn { border-color: rgba(255,104,124,.35); }
+.quest-foot { border-top: 1px solid rgba(83,197,228,.2); }
+.quest-foot-note { color: #82adbf; }
+.quest-go { color: #032435; background: linear-gradient(135deg,#9bf3ff,#35b9e2); border: 1px solid rgba(206,250,255,.65); border-radius: 10px; box-shadow: 0 5px 18px rgba(34,176,215,.22); }
+.quest-go:hover { filter: brightness(1.12); transform: translateY(-2px); }
+
+/* Shop-specific crystal wallet and product states */
+.shop-purse { color: #ffe6a0; background: linear-gradient(120deg,rgba(111,83,29,.28),rgba(47,42,20,.38)); border: 1px solid rgba(255,211,110,.3); border-radius: 9px; }
+.shop-card-desc { color: #a7cbd8; }
+.shop-card-note { color: #789eaf; }
+.shop-card.equipped { border-color: rgba(86,231,194,.55); box-shadow: 0 0 20px rgba(46,194,155,.1); }
+.shop-card.poor { opacity: .72; }
+.shop-card.poor .shop-card-note { color: #ff9ba8; }
+.shop-empty { background: rgba(4,26,42,.65); border: 1px dashed rgba(85,194,224,.24); border-radius: 13px; }
+.shop-empty-glyph { color: #72e2fa; }
+.shop-empty-title { color: #e5faff; }
+.shop-empty-text { color: #8db7c8; }
+
+/* Ability controls + floating chips */
+.quest-chip {
+  color: #e3faff;
+  background: linear-gradient(145deg,rgba(10,54,78,.96),rgba(3,25,42,.96));
+  border: 1px solid rgba(99,220,248,.42);
+  border-radius: 12px;
+  box-shadow: 0 8px 22px rgba(0,8,18,.28), inset 0 1px 0 rgba(199,248,255,.12), 0 0 18px rgba(42,184,223,.08);
+}
+.quest-chip:hover { color: #fff; border-color: #7cecff; background: linear-gradient(145deg,rgba(20,91,119,.98),rgba(4,39,59,.98)); box-shadow: 0 10px 26px rgba(19,157,199,.22); transform: translateY(-2px); }
+.quest-chip-icon { color: #82edff; }
+.quest-chip-crystal { color: #ffe49b; }
+.quest-chip-badge { color: #042b36; background: linear-gradient(120deg,#a4ffe4,#44d8bb); box-shadow: 0 0 12px rgba(74,231,190,.35); }
+#zoneChip, #gateChip { color: #dffaff; background: linear-gradient(120deg,rgba(7,43,64,.92),rgba(2,19,34,.9)); border: 1px solid rgba(83,205,237,.28); border-radius: 9px; box-shadow: 0 8px 22px rgba(0,8,18,.24); }
+#zoneChip b { color: #9cefff; }
+#gateChip.open { border-color: rgba(95,240,197,.55); }
+#gateChip.open span { color: #9affdc; }
+#abilityBtn, #shotBtn { border: 1px solid rgba(134,237,255,.62); background: radial-gradient(circle at 35% 25%,rgba(106,231,255,.36),transparent 46%), linear-gradient(145deg,#0e6284,#06253e 75%); box-shadow: 0 8px 25px rgba(0,7,18,.4), inset 0 1px 0 rgba(216,251,255,.3), 0 0 24px rgba(42,192,235,.18); }
+#abilityBtn:hover, #shotBtn:hover { border-color: #c2f9ff; box-shadow: 0 10px 30px rgba(15,166,211,.28), inset 0 1px 0 rgba(255,255,255,.3); }
+#abilityBtn.ready, #shotBtn.ready { border-color: #a9f7ff; box-shadow: 0 0 0 3px rgba(70,216,255,.12), 0 0 28px rgba(53,207,255,.42), inset 0 1px 0 rgba(255,255,255,.32); }
+#abilityBtn .ability-svg, #shotBtn .ability-svg { color: #c6f8ff; }
+.ability-info { color: #dffaff; background: linear-gradient(145deg,rgba(7,37,55,.92),rgba(2,17,30,.9)); border: 1px solid rgba(86,196,228,.24); border-radius: 9px; }
+.ability-label, .ability-key, .shot-key { color: #7eb7ca; }
+#controlsHint { color: rgba(174,220,235,.72); text-shadow: 0 2px 8px rgba(0,0,0,.8); }
+#controlsHint b { color: #c9f5ff; }
+#starvationWarn { color: #ffd0a0; text-shadow: 0 0 16px rgba(255,145,86,.4); }
+#eventBanner { color: #eaffff; text-shadow: 0 0 22px rgba(79,221,255,.45); }
+#toast { color: #eaffff; background: linear-gradient(145deg,rgba(8,48,68,.96),rgba(2,19,33,.96)); border: 1px solid rgba(101,220,245,.4); border-radius: 10px; box-shadow: 0 10px 30px rgba(0,5,14,.45),0 0 20px rgba(36,171,211,.13); }
+
+/* Authentication */
+.auth-eyebrow, .field-label { color: #82dff2; }
+.auth-title { color: #eafaff; }
+.auth-sub { color: #8eb7c8; }
+.auth-tabs { background: rgba(1,15,28,.72); border: 1px solid rgba(87,190,220,.2); border-radius: 10px; }
+.auth-tab { color: #83aebf; }
+.auth-tab.active { color: #032334; }
+.auth-tab-thumb { background: linear-gradient(120deg,#9af4ff,#35bce5); border-radius: 8px; box-shadow: 0 4px 15px rgba(43,183,222,.2); }
+.field-eye { color: #7bd9ed; background: rgba(20,82,107,.3); border: 1px solid rgba(87,192,222,.2); border-radius: 6px; }
+.field-eye:hover { color: white; background: rgba(29,119,150,.45); }
+.auth-notice { color: #a8c9d5; background: rgba(30,109,139,.14); border: 1px solid rgba(91,190,219,.18); border-radius: 8px; }
+.auth-link { color: #7ce6ff; }
+.auth-link:hover { color: #d8faff; }
+.field-error { color: #ff9aa8; }
+
+/* Scrollbars, selection and accessibility */
+.quest-body, .evo-preview { scrollbar-color: #267f9f rgba(2,16,28,.7); scrollbar-width: thin; }
+.quest-body::-webkit-scrollbar-thumb, .evo-preview::-webkit-scrollbar-thumb { background: linear-gradient(#48cbe9,#17658a); border-radius: 8px; }
+::selection { color: #002033; background: #81ecff; }
+button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid #80eaff; outline-offset: 3px; }
+@media (max-width: 720px) {
+  .menu-shell, .quest-frame, .modal, .auth-card { box-shadow: 0 16px 45px rgba(0,5,14,.62), 0 0 24px rgba(24,156,202,.1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn, .quest-chip, .quest-tab, .quest-go, .shop-card-buy, .quest-card-claim, #abilityBtn, #shotBtn { transition: none !important; }
+}
