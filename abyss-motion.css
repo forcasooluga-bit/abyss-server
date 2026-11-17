@@ -1,0 +1,86 @@
+/* ABYSS.IO — premium ocean motion layer
+   Lightweight CSS-only polish. Gameplay and canvas simulation are untouched. */
+:root {
+  --motion-glass: rgba(4, 24, 39, .76);
+  --motion-line: rgba(112, 226, 255, .24);
+  --motion-cyan: #64e7ff;
+  --motion-mint: #76f4d5;
+}
+#app { isolation: isolate; }
+#hud .panel,
+.quest-frame,
+.auth-card,
+.modal,
+.menu-shell {
+  border-color: var(--motion-line);
+  box-shadow:
+    inset 0 1px 0 rgba(225, 250, 255, .09),
+    0 18px 50px rgba(0, 5, 14, .34),
+    0 0 28px rgba(35, 173, 213, .055);
+}
+#hud .panel {
+  backdrop-filter: blur(12px) saturate(1.16);
+  -webkit-backdrop-filter: blur(12px) saturate(1.16);
+  transition: border-color .22s ease, box-shadow .22s ease, background .22s ease;
+}
+#hud .panel:hover {
+  border-color: rgba(115, 231, 255, .38);
+  box-shadow: inset 0 1px 0 rgba(225,250,255,.12), 0 18px 48px rgba(0,5,14,.38), 0 0 24px rgba(48,194,229,.09);
+}
+.menu-shell {
+  animation: abyssShellEnter .7s cubic-bezier(.2,.8,.2,1) both;
+}
+.brand img {
+  filter: drop-shadow(0 0 22px rgba(70, 215, 255, .2));
+  animation: abyssLogoFloat 5s ease-in-out infinite;
+}
+.tagline { text-shadow: 0 0 18px rgba(83, 220, 255, .22); }
+.btn, .quest-chip, .quest-tab, .quest-go, .shop-card-buy, .quest-card-claim {
+  transition: transform .2s ease, filter .2s ease, border-color .2s ease, box-shadow .2s ease, background .2s ease;
+}
+.btn:hover, .quest-chip:hover, .quest-tab:hover, .shop-card-buy:hover, .quest-card-claim:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.12);
+}
+.btn:active, .quest-chip:active, .quest-go:active, .shop-card-buy:active, .quest-card-claim:active {
+  transform: translateY(1px) scale(.985);
+}
+.btn.primary {
+  box-shadow: 0 0 0 1px rgba(113,232,255,.12), 0 8px 24px rgba(40,184,224,.15), inset 0 1px 0 rgba(255,255,255,.24);
+  animation: abyssPrimaryBreath 3.2s ease-in-out infinite;
+}
+.name-card, .account-card, .controls-card, .best-card, .quest-card, .shop-card {
+  transition: transform .24s ease, border-color .24s ease, box-shadow .24s ease;
+}
+.quest-card:hover, .shop-card:hover {
+  transform: translateY(-3px);
+}
+#abilityBtn, #shotBtn {
+  transition: transform .2s ease, filter .2s ease, box-shadow .25s ease;
+}
+#abilityBtn:hover, #shotBtn:hover { transform: translateY(-3px) scale(1.025); filter: brightness(1.12); }
+.bar i { transition: width .32s cubic-bezier(.2,.75,.25,1); }
+.bar.xp i { box-shadow: 0 0 14px rgba(85, 224, 255, .5); }
+#toast { animation: abyssToastIn .25s ease-out both; }
+.overlay:not(.hidden) { animation: abyssOverlayIn .24s ease-out both; }
+.quest-frame, .modal, .auth-card { animation: abyssModalIn .34s cubic-bezier(.2,.8,.2,1) both; }
+#zoneChip, #gateChip { backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+#cursor { transition: opacity .18s ease; }
+@keyframes abyssShellEnter {
+  from { opacity: 0; transform: translateY(18px) scale(.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes abyssLogoFloat {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+@keyframes abyssPrimaryBreath {
+  0%,100% { box-shadow: 0 0 0 1px rgba(113,232,255,.12), 0 8px 24px rgba(40,184,224,.12), inset 0 1px 0 rgba(255,255,255,.24); }
+  50% { box-shadow: 0 0 0 1px rgba(113,232,255,.2), 0 10px 30px rgba(40,184,224,.24), inset 0 1px 0 rgba(255,255,255,.3); }
+}
+@keyframes abyssOverlayIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes abyssModalIn { from { opacity: 0; transform: translateY(12px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes abyssToastIn { from { opacity: 0; transform: translate(-50%, 8px); } to { opacity: 1; transform: translate(-50%, 0); } }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
