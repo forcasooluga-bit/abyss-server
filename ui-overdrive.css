@@ -1,0 +1,110 @@
+/* ABYSS.IO — UI OVERDRIVE
+   Premium deep-ocean interface layer. Visual-only: no gameplay logic or layout hooks changed. */
+:root{
+  --ui-void:#020914;--ui-deep:#061a2b;--ui-panel:rgba(5,22,39,.88);
+  --ui-line:rgba(91,220,255,.28);--ui-cyan:#65efff;--ui-blue:#278ee8;
+  --ui-text:#effcff;--ui-muted:#91b9cc;--ui-glow:rgba(36,190,255,.22);
+}
+button,.btn,.quest-chip,.quest-tab,.quest-go,.shop-card-buy,.quest-card-claim,
+input,.field-input{font:inherit;-webkit-tap-highlight-color:transparent}
+button,.btn,.quest-chip,.quest-tab,.quest-go,.shop-card-buy,.quest-card-claim{
+  position:relative;isolation:isolate;overflow:hidden;
+}
+button:focus-visible,.btn:focus-visible,input:focus-visible,.field-input:focus-visible{
+  outline:2px solid var(--ui-cyan);outline-offset:3px;
+}
+.btn{
+  border:1px solid rgba(103,222,255,.28)!important;border-radius:13px!important;
+  letter-spacing:.095em;font-weight:800!important;
+  background:linear-gradient(145deg,rgba(14,57,83,.96),rgba(5,25,43,.98))!important;
+  color:#dffaff!important;box-shadow:inset 0 1px rgba(255,255,255,.09),0 8px 22px rgba(0,5,16,.28),0 0 0 1px rgba(18,125,174,.08);
+  transition:transform .22s cubic-bezier(.2,.8,.2,1),border-color .22s,box-shadow .22s,filter .22s!important;
+}
+.btn::before,.quest-chip::before,.quest-go::before,.shop-card-buy::before,.quest-card-claim::before{
+  content:"";position:absolute;inset:0;z-index:-1;opacity:0;
+  background:linear-gradient(110deg,transparent 15%,rgba(191,247,255,.2) 48%,transparent 78%);
+  transform:translateX(-110%);transition:transform .65s ease,opacity .25s ease;
+}
+.btn:hover::before,.quest-chip:hover::before,.quest-go:hover::before,.shop-card-buy:hover::before,.quest-card-claim:hover::before{
+  opacity:1;transform:translateX(110%);
+}
+.btn:hover,.quest-chip:hover,.quest-tab:hover,.quest-go:hover,.shop-card-buy:hover,.quest-card-claim:hover{
+  transform:translateY(-2px);border-color:rgba(113,237,255,.68)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.14),0 12px 28px rgba(0,7,20,.4),0 0 22px rgba(45,197,255,.14);
+  filter:brightness(1.1);
+}
+.btn:active,.quest-chip:active,.quest-tab:active,.quest-go:active,.shop-card-buy:active,.quest-card-claim:active{
+  transform:translateY(1px) scale(.985);filter:brightness(.98);
+}
+.btn.primary{
+  color:#031522!important;border:1px solid rgba(194,250,255,.75)!important;
+  background:linear-gradient(115deg,#a4f8ff 0%,#51dfff 42%,#3c9eff 100%)!important;
+  box-shadow:0 0 0 1px rgba(82,221,255,.18),0 9px 28px rgba(29,166,239,.25),inset 0 1px rgba(255,255,255,.72)!important;
+  text-shadow:0 1px rgba(255,255,255,.3);
+}
+.btn.primary:hover{box-shadow:0 0 0 1px rgba(156,245,255,.48),0 12px 34px rgba(36,185,255,.38),0 0 30px rgba(61,211,255,.2)!important}
+.btn.ghost{background:linear-gradient(145deg,rgba(12,43,64,.84),rgba(4,20,35,.9))!important}
+.menu-shell,.modal,.auth-card,.quest-frame{
+  border:1px solid rgba(104,224,255,.34)!important;border-radius:22px!important;
+  background:
+   radial-gradient(ellipse at 50% 0%,rgba(34,155,202,.2),transparent 48%),
+   linear-gradient(155deg,rgba(8,37,58,.98),rgba(3,15,28,.985) 72%)!important;
+  box-shadow:0 30px 90px rgba(0,0,0,.52),inset 0 1px rgba(224,251,255,.13),inset 0 0 45px rgba(18,133,184,.06)!important;
+}
+.menu-shell{position:relative;overflow:hidden}
+.menu-shell::before,.quest-frame::before,.auth-card::before{
+  content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;
+  background:linear-gradient(125deg,rgba(129,233,255,.07),transparent 28% 72%,rgba(45,158,255,.045));
+}
+.brand img{filter:drop-shadow(0 0 24px rgba(71,218,255,.38))!important}
+.tagline{color:#8cecff!important;letter-spacing:.18em!important;text-transform:uppercase;text-shadow:0 0 22px rgba(77,218,255,.28)}
+.blurb,.quest-sub,.modal-sub,.auth-sub{color:#a7c9d8!important;line-height:1.65}
+.panel-title,.quest-heading,.modal-title,.auth-title{letter-spacing:.12em;text-shadow:0 0 18px rgba(74,202,255,.12)}
+.name-card,.account-card,.controls-card,.best-card,.quest-card,.shop-card,.death-stat{
+  border:1px solid rgba(102,204,235,.2)!important;border-radius:15px!important;
+  background:linear-gradient(145deg,rgba(13,48,70,.78),rgba(4,22,38,.82))!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.045),0 9px 25px rgba(0,5,15,.16);
+}
+.name-input,.field-input{
+  color:#f0fcff!important;background:rgba(1,13,25,.72)!important;
+  border:1px solid rgba(91,199,231,.3)!important;border-radius:11px!important;
+  box-shadow:inset 0 2px 8px rgba(0,0,0,.22);
+  transition:border-color .2s,box-shadow .2s;
+}
+.name-input:focus,.field-input:focus{border-color:rgba(92,231,255,.8)!important;box-shadow:0 0 0 3px rgba(61,198,241,.13),0 0 22px rgba(45,187,238,.1)!important;outline:none}
+.quest-tabs{border-bottom:1px solid rgba(92,207,239,.2)!important}
+.quest-tab,.auth-tab{
+  color:#8eb9ca!important;transition:color .2s,background .2s,transform .2s!important;
+}
+.quest-tab.active,.auth-tab.active{color:#e9fcff!important;text-shadow:0 0 16px rgba(75,215,255,.35)}
+.quest-tab.active::after{background:linear-gradient(90deg,#39a9ee,#7af2ff)!important;box-shadow:0 0 14px rgba(83,221,255,.55)}
+.quest-close,.auth-close{
+  border:1px solid rgba(107,218,246,.24)!important;border-radius:10px!important;
+  background:rgba(8,39,59,.82)!important;color:#c7f4ff!important;
+  transition:transform .2s,background .2s,border-color .2s;
+}
+.quest-close:hover,.auth-close:hover{transform:rotate(90deg);background:rgba(20,91,119,.8)!important;border-color:#70eaff!important}
+.quest-chip{
+  border:1px solid rgba(94,222,255,.34)!important;border-radius:14px!important;
+  background:linear-gradient(145deg,rgba(9,46,70,.94),rgba(3,19,34,.96))!important;
+  color:#e5faff!important;box-shadow:0 8px 24px rgba(0,7,20,.32),inset 0 1px rgba(255,255,255,.08);
+}
+.quest-chip-icon{filter:drop-shadow(0 0 8px rgba(86,224,255,.4))}
+#abilityBtn,#shotBtn{
+  border:1px solid rgba(120,234,255,.6)!important;
+  background:radial-gradient(circle at 35% 25%,#287ea4,#0b304b 65%,#041626)!important;
+  box-shadow:0 0 0 4px rgba(42,179,224,.1),0 0 28px rgba(47,195,245,.2),inset 0 1px rgba(255,255,255,.2)!important;
+}
+#abilityBtn:hover,#shotBtn:hover{box-shadow:0 0 0 5px rgba(42,179,224,.15),0 0 36px rgba(47,195,245,.38),inset 0 1px rgba(255,255,255,.25)!important}
+#hud .panel{backdrop-filter:blur(14px) saturate(1.2);-webkit-backdrop-filter:blur(14px) saturate(1.2)}
+#hud .panel:hover{border-color:rgba(105,225,255,.43)}
+#toast{border:1px solid rgba(99,225,255,.35);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.35),0 0 22px rgba(37,174,220,.13)}
+#shopPurse,.account-crystals,.quest-chip-crystal{color:#aaf4ff!important;text-shadow:0 0 12px rgba(77,222,255,.35)}
+@keyframes uiAbyssRise{from{opacity:0;transform:translateY(12px) scale(.99)}to{opacity:1;transform:translateY(0) scale(1)}}
+.overlay:not(.hidden) .menu-shell,.overlay:not(.hidden) .modal,.overlay:not(.hidden) .quest-frame,.overlay:not(.hidden) .auth-card{
+  animation:uiAbyssRise .38s cubic-bezier(.2,.8,.2,1) both;
+}
+@media(hover:none){.btn:hover,.quest-chip:hover,.quest-tab:hover,.quest-go:hover{transform:none;filter:none}}
+@media(prefers-reduced-motion:reduce){
+ *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
