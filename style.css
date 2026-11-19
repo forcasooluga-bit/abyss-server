@@ -1,15 +1,15 @@
 :root {
   --ink: #e9fbff;
   --ink-dim: #9dc6d8;
-  --cyan: #4fe3ff;
-  --mint: #7af7d8;
-  --violet: #b49bff;
+  --cyan: #a78bfa;
+  --mint: #67e8f9;
+  --violet: #c4b5fd;
   --coral: #ff7f6b;
   --gold: #ffd76a;
   --danger: #ff4f6d;
-  --panel: rgba(5, 25, 39, 0.82);
-  --panel-2: rgba(4, 18, 30, 0.9);
-  --line: rgba(127, 226, 255, 0.16);
+  --panel: rgba(16, 15, 43, 0.88);
+  --panel-2: rgba(9, 10, 31, 0.94);
+  --line: rgba(167, 139, 250, 0.24);
   --font-display: "Trebuchet MS", "Segoe UI", Verdana, sans-serif;
   --font-ui: "Segoe UI", "Trebuchet MS", Verdana, sans-serif;
 }
