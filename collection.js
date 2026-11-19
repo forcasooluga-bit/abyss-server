@@ -16,6 +16,9 @@
   const EVO_KEY = 'evo_abyssal_bloom';
   const KILL_KEY = 'kill_poseidon_wake';
   const LION_KEY = 'pet_lionfish';
+  const TANG_KEY = 'pet_blue_tang';
+  const VORTEX_KEY = 'evo_nebula_vortex';
+  const RIFT_KEY = 'kill_rift_collapse';
 
   // ------------------------------------------------------------------
   // Small helpers
@@ -106,6 +109,18 @@
     }
   }
 
+  // Nebula Vortex evolution flourish: paired orbital rings and tangential
+  // particles spiral out around the new form.
+  function nebulaVortex(x,y,r) {
+    const low=qualityLow();
+    add({k:'flare',x,y,size:r*.42,grow:r*2.7,color:'#a78bfa',life:.55,maxLife:.55});
+    add({k:'ring',x,y,r:r*.28,vr:r*3.7,w:Math.max(1.5,r*.045),color:'rgba(167,139,250,.95)',life:.8,maxLife:.8});
+    add({k:'ring',x,y,r:r*.62,vr:-r*1.7,w:Math.max(1.3,r*.035),color:'rgba(103,232,249,.9)',life:.95,maxLife:.95});
+    const n=low?9:15;
+    for(let i=0;i<n;i++){const a=i*TAU/n+A.rand(-.12,.12),d=r*A.rand(.55,1.25),sp=r*A.rand(.48,.9),life=A.rand(.65,1.05);
+      add({k:'mote',x:x+Math.cos(a)*d,y:y+Math.sin(a)*d,vx:-Math.sin(a)*sp,vy:Math.cos(a)*sp-r*.22,seed:a,size:r*A.rand(.08,.13),color:i%2?'#67e8f9':'#d8ccff',life,maxLife:life});}
+  }
+
   // ------------------------------------------------------------------
   // Kill effect — Poseidon's Wake
   // ------------------------------------------------------------------
@@ -167,16 +182,34 @@
     });
   }
 
+  // Rift Collapse kill flourish: inward-folding rings and a brief starburst.
+  function riftCollapse(f) {
+    if(!f)return;const low=qualityLow(),r=Math.max(8,f.radius||10),x=f.x,y=f.y;
+    add({k:'flare',x,y,size:r*.38,grow:r*2.8,color:'#a78bfa',life:.38,maxLife:.38});
+    add({k:'ring',x,y,r:r*2.9,vr:-r*7.5,w:Math.max(1.6,r*.055),color:'rgba(167,139,250,.98)',life:.42,maxLife:.42});
+    add({k:'ring',x,y,r:r*1.9,vr:-r*4.6,w:Math.max(1.4,r*.045),color:'rgba(103,232,249,.95)',life:.58,maxLife:.58});
+    add({k:'ring',x,y,r:r*.45,vr:r*3,w:Math.max(1.2,r*.035),color:'rgba(232,224,255,.9)',life:.7,maxLife:.7});
+    const n=low?7:12;
+    for(let i=0;i<n;i++){const a=i*TAU/n+A.rand(-.1,.1),sp=r*A.rand(.7,1.35),life=A.rand(.45,.85);
+      add({k:'mote',x:x+Math.cos(a)*r*.35,y:y+Math.sin(a)*r*.35,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,seed:a,size:r*A.rand(.07,.12),color:i%2?'#67e8f9':'#cbbaff',life,maxLife:life});}
+    add({k:'ghost',art:f.art,colors:f.colors,angle:f.angle||0,radius:r,phase:f.phase||0,swim:f.swim||0,x,y,vy:-r*.25,wisp:0,life:.48,maxLife:.48});
+  }
+
   // ------------------------------------------------------------------
   // Pets
   // ------------------------------------------------------------------
   // Where the companion swims relative to the owner, in body radii. It sits
   // behind and to one side, so it can never cover the mouth or the nose.
   const PET_HOLD = {
-    lionfish: { back: 2.60, side: 2.10, lag: 4.2 }
+    lionfish: { back: 2.60, side: 2.10, lag: 4.2 },
+    blue_tang: { back: 2.25, side: -2.35, lag: 4.6 }
   };
 
   const PETS = {
+    blue_tang: {
+      kind: 'blue_tang', x: 0, y: 0, px: 0, py: 0, angle: 0, active: false,
+      vx: 0, vy: 0, speed: 0, bank: 0, trail: 0, phase: 4.1
+    },
     lionfish: {
       kind: 'lionfish', x: 0, y: 0, px: 0, py: 0, angle: 0, active: false,
       vx: 0, vy: 0, speed: 0, bank: 0, trail: 0, phase: 2.2,
@@ -196,6 +229,12 @@
   // mid-dive has to place it at your shoulder instead of letting it swim in
   // from the world origin.
   function resetPets(p) {
+    const tang = PETS.blue_tang;
+    tang.owner = p;
+    tang.active = false;
+    if (p) placePet(tang, p, PET_HOLD.blue_tang.back, PET_HOLD.blue_tang.side);
+    tang.vx = tang.vy = tang.speed = tang.bank = 0;
+    tang.trail = 0;
     const lion = PETS.lionfish;
     lion.owner = p;
     lion.active = false;
@@ -302,6 +341,24 @@
     // A slow lateral wander so a parked pet keeps swimming its little circle
     // instead of freezing beside a player who is not moving.
     const wander = Math.sin(sim * 1.45 + 0.7);
+
+    const tang = PETS.blue_tang;
+    const tangOn = petSlot === TANG_KEY;
+    if (tangOn && !tang.active) {
+      tang.active = true;
+      placePet(tang, p, PET_HOLD.blue_tang.back, PET_HOLD.blue_tang.side);
+    } else if (!tangOn) {
+      tang.active = false;
+    }
+    if (tang.active) {
+      const h = PET_HOLD.blue_tang;
+      const sway = Math.sin(sim * 1.25 + 1.7) * p.radius * 0.12;
+      const lift = Math.sin(sim * 1.8 + 4.1) * p.radius * 0.10;
+      const tx = p.x + Math.cos(back) * p.radius * h.back + Math.cos(side - 0.30) * (p.radius * h.side + sway);
+      const ty = p.y + Math.sin(back) * p.radius * h.back + Math.sin(side - 0.30) * (p.radius * h.side + sway) + lift;
+      follow(tang, tx, ty, dt, h.lag);
+      emitWake(tang, dt);
+    }
 
     const lionOn = petSlot === LION_KEY;
     if (lionOn && !lion.active) {
@@ -845,6 +902,38 @@
     ctx.restore();
   }
 
+  // Blue tang (Paracanthurus hepatus): cobalt body, dark palette markings,
+  // yellow fins and the distinctive bright yellow tail.
+  function paintBlueTang(ctx,t,swim) {
+    const wag=Math.sin(t*(3.1+swim*3.2));
+    ctx.save();ctx.translate(-0.63,0);ctx.rotate(wag*(0.13+swim*0.18));
+    ctx.fillStyle='#f2d84a';ctx.strokeStyle='#102044';ctx.lineWidth=.035;
+    ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(-.42,-.30);ctx.quadraticCurveTo(-.34,0,-.42,.30);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();
+    ctx.beginPath();ctx.moveTo(.93,0);ctx.quadraticCurveTo(.75,-.36,.25,-.38);
+    ctx.quadraticCurveTo(-.34,-.35,-.63,-.10);ctx.quadraticCurveTo(-.72,0,-.63,.10);
+    ctx.quadraticCurveTo(-.34,.35,.25,.38);ctx.quadraticCurveTo(.75,.36,.93,0);ctx.closePath();
+    ctx.fillStyle='#1766c7';ctx.fill();ctx.strokeStyle='#081b43';ctx.lineWidth=.04;ctx.stroke();
+    ctx.save();ctx.clip();ctx.fillStyle='#082b73';ctx.beginPath();ctx.moveTo(.55,-.39);
+    ctx.quadraticCurveTo(.25,0,.54,.39);ctx.lineTo(.82,.34);ctx.lineTo(.82,-.34);ctx.closePath();ctx.fill();
+    ctx.strokeStyle='rgba(7,19,58,.9)';ctx.lineWidth=.045;ctx.beginPath();ctx.moveTo(.38,-.34);
+    ctx.quadraticCurveTo(.18,0,.40,.34);ctx.stroke();ctx.restore();
+    ctx.fillStyle='#e6c83e';ctx.beginPath();ctx.moveTo(-.38,-.26);ctx.quadraticCurveTo(-.12,-.56,.40,-.34);
+    ctx.lineTo(.18,-.27);ctx.closePath();ctx.fill();
+    ctx.beginPath();ctx.moveTo(-.30,.27);ctx.quadraticCurveTo(.02,.52,.43,.34);ctx.lineTo(.18,.28);ctx.closePath();ctx.fill();
+    ctx.fillStyle='#fff2d2';ctx.beginPath();ctx.arc(.72,-.12,.075,0,TAU);ctx.fill();
+    ctx.fillStyle='#07152c';ctx.beginPath();ctx.arc(.74,-.12,.039,0,TAU);ctx.fill();
+    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(.755,-.14,.014,0,TAU);ctx.fill();
+    ctx.strokeStyle='#07152c';ctx.lineWidth=.025;ctx.beginPath();ctx.moveTo(.91,.035);ctx.quadraticCurveTo(.82,.10,.72,.075);ctx.stroke();
+  }
+  function drawBlueTang(ctx,pet,sim,p) {
+    const size=petWorldScale(p)*.82,swim=A.clamp((pet.speed||0)/240,0,1);
+    const phase=sim*(2.5+swim*2.5)+pet.phase,bob=Math.sin(phase*.7)*size*.07;
+    ctx.save();ctx.globalCompositeOperation='lighter';ctx.globalAlpha=.10;
+    const glow=size*3.6;ctx.drawImage(A.glowSprite('#348dff'),pet.x-glow/2,pet.y-glow/2,glow,glow);ctx.restore();
+    ctx.save();ctx.translate(pet.x,pet.y+bob);ctx.rotate(pet.angle+(pet.bank||0));
+    if(Math.cos(pet.angle)<0)ctx.scale(1,-1);ctx.scale(size,size);paintBlueTang(ctx,sim,swim);ctx.restore();
+  }
+
   function drawMarks(ctx, sim) {
     const marks = PETS.lionfish.marks;
     if (!marks) return;
@@ -1041,21 +1130,37 @@
       previewPet(ctx, w, h);
       return true;
     }
+    if (key === TANG_KEY) {
+      backdrop(ctx,w,h,'rgba(45,120,255,0.20)');
+      ctx.save();ctx.translate(w/2,h/2);ctx.rotate(-.10);
+      const size=Math.min(w*.34,h*.48);ctx.scale(size,size);paintBlueTang(ctx,1.2,.4);ctx.restore();return true;
+    }
     if (key === EVO_KEY) {
       backdrop(ctx, w, h, 'rgba(140,200,255,0.14)');
       previewBloom(ctx, w, h);
       return true;
+    }
+    if (key === VORTEX_KEY) {
+      backdrop(ctx,w,h,'rgba(139,110,255,0.22)');
+      const cx=w/2,cy=h/2;ctx.save();ctx.translate(cx,cy);
+      for(let j=0;j<2;j++){ctx.beginPath();ctx.ellipse(0,0,w*(.30-j*.055),h*(.31-j*.045),j*.5,0,TAU);ctx.strokeStyle=j?'rgba(103,232,249,.9)':'rgba(167,139,250,.95)';ctx.lineWidth=2.2;ctx.stroke();}
+      for(let i=0;i<9;i++){const a=i*TAU/9+.5,d=h*(.12+i*.012);ctx.fillStyle=i%2?'#67e8f9':'#d8ccff';ctx.beginPath();ctx.arc(Math.cos(a)*d,Math.sin(a)*d*.7,2.1,0,TAU);ctx.fill();}
+      ctx.restore();return true;
     }
     if (key === KILL_KEY) {
       backdrop(ctx, w, h, 'rgba(60,190,220,0.16)');
       previewWake(ctx, w, h);
       return true;
     }
-    if (key === 'skin_tidewrought') {
-      backdrop(ctx, w, h, 'rgba(230,193,90,0.14)');
-      if (A.Weapons) {
-        A.Weapons.paintFlat(ctx, 'ancient_trident', w, h, performance.now() / 1000, -0.17, key);
-      }
+    if (key === RIFT_KEY) {
+      backdrop(ctx,w,h,'rgba(139,110,255,0.22)');const cx=w/2,cy=h/2;
+      ctx.save();ctx.globalCompositeOperation='lighter';
+      for(let i=0;i<3;i++){ctx.beginPath();ctx.ellipse(cx,cy,w*(.33-i*.07),h*(.31-i*.06),i*.28,0,TAU);ctx.strokeStyle=i===1?'rgba(103,232,249,.95)':'rgba(167,139,250,.9)';ctx.lineWidth=2.2;ctx.stroke();}
+      ctx.restore();for(let i=0;i<8;i++){const a=i*TAU/8,d=w*.34;ctx.fillStyle='#e8e0ff';ctx.beginPath();ctx.arc(cx+Math.cos(a)*d,cy+Math.sin(a)*d*.55,1.7,0,TAU);ctx.fill();}return true;
+    }
+    if (key === 'skin_tidewrought' || key === 'skin_abyssal_crown') {
+      backdrop(ctx,w,h,key==='skin_tidewrought'?'rgba(230,193,90,0.14)':'rgba(139,110,255,0.20)');
+      if(A.Weapons)A.Weapons.paintFlat(ctx,'ancient_trident',w,h,performance.now()/1000,-.17,key);
       return true;
     }
     return false;
@@ -1065,15 +1170,14 @@
   // Public hooks
   // ------------------------------------------------------------------
   function onEvolve(p) {
-    if (!p) return;
-    if (activeSlot('evolution') !== EVO_KEY) return;
-    bloom(p.x, p.y, p.radius || 20);
+    if(!p)return;const key=activeSlot('evolution');
+    if(key===EVO_KEY)bloom(p.x,p.y,p.radius||20);
+    else if(key===VORTEX_KEY)nebulaVortex(p.x,p.y,p.radius||20);
   }
-
   function onKill(f) {
-    if (!f) return;
-    if (activeSlot('kill') !== KILL_KEY) return;
-    wake(f);
+    if(!f)return;const key=activeSlot('kill');
+    if(key===KILL_KEY)wake(f);
+    else if(key===RIFT_KEY)riftCollapse(f);
   }
 
   function update(dt) {
@@ -1082,6 +1186,8 @@
     if (!g) return;
     if (g.state === 'playing' && g.player) updatePets(g, dt);
     else {
+      PETS.blue_tang.active = false;
+      PETS.blue_tang.owner = null;
       PETS.lionfish.active = false;
       PETS.lionfish.owner = null;
     }
@@ -1097,11 +1203,14 @@
     if (!playing) return;
 
     drawMarks(ctx, sim);
+    if (PETS.blue_tang.active) drawBlueTang(ctx, PETS.blue_tang, sim, p);
     if (PETS.lionfish.active) drawPet(ctx, PETS.lionfish, sim, p);
   }
 
   function reset() {
     parts.length = 0;
+    PETS.blue_tang.owner = null;
+    PETS.blue_tang.active = false;
     PETS.lionfish.owner = null;
     PETS.lionfish.active = false;
     PETS.lionfish.marks = null;
