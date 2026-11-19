@@ -60,6 +60,15 @@
         glow: '#2fe0c0',
         outline: '#000000'
       }
+    },
+    skin_abyssal_crown: {
+      name: 'Abyssal Crown',
+      palette: {
+        steel: '#17152d', steelDark: '#050511', tine: '#40356f',
+        tineTop: '#a78bfa', sheen: '#f2edff', bronze: '#6e62b8',
+        bronzeDark: '#282044', accent: '#67e8f9', glow: '#a78bfa',
+        outline: '#05040d'
+      }
     }
   };
 
