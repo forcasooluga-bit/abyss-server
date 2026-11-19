@@ -72,6 +72,12 @@
       art: 'skin_tidewrought'
     },
     {
+      key: 'skin_abyssal_crown', cat: 'trident_skins', name: 'Abyssal Crown', price: 1850,
+      rarity: 'Mythic', minStage: 'shark',
+      desc: 'Midnight-forged steel with amethyst inlay, polished violet edges and an ice-cyan core. Purely cosmetic; weapon stats stay unchanged.',
+      art: 'skin_abyssal_crown'
+    },
+    {
       key: 'pet_lionfish',
       cat: 'pets',
       name: 'Lionfish',
@@ -81,6 +87,11 @@
             'Every 14 seconds it flares that fan and rings the nearest hunter and the nearest food ' +
             'bloom for 4 seconds, so nothing big can close in unseen.',
       art: 'pet_lionfish'
+    },
+    {
+      key: 'pet_blue_tang', cat: 'pets', name: 'Blue Tang', price: 1350, rarity: 'Epic',
+      desc: 'A real Indo-Pacific blue tang (Paracanthurus hepatus), with a cobalt body, dark markings and a bright yellow tail. A purely cosmetic companion that swims beside you.',
+      art: 'pet_blue_tang'
     },
     {
       key: 'kill_poseidon_wake',
@@ -93,6 +104,11 @@
       art: 'kill_poseidon_wake'
     },
     {
+      key: 'kill_rift_collapse', cat: 'kill_effects', name: 'Rift Collapse', price: 1950, rarity: 'Mythic',
+      desc: 'A violet-cyan portal snaps open around the defeated creature, folds inward in two bright rings and releases a brief burst of star-like particles.',
+      art: 'kill_rift_collapse'
+    },
+    {
       key: 'evo_abyssal_bloom',
       cat: 'evolution_effects',
       name: 'Abyssal Bloom',
@@ -101,6 +117,11 @@
       desc: 'Bioluminescent petals unfurl around the new body, pearls spiral upward and a crown of ' +
             'light closes over the change. Plays automatically on every evolution.',
       art: 'evo_abyssal_bloom'
+    },
+    {
+      key: 'evo_nebula_vortex', cat: 'evolution_effects', name: 'Nebula Vortex', price: 1750, rarity: 'Mythic',
+      desc: 'Violet and ice-cyan spiral currents coil around your new form, then burst outward in a glowing halo. Plays automatically on every evolution.',
+      art: 'evo_nebula_vortex'
     }
   ];
 
