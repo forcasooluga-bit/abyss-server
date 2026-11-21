@@ -1204,13 +1204,6 @@
     // And for the shop.
     if (A.ShopUI && A.ShopUI.isOpen()) return;
     const key = (e.key || '').toLowerCase();
-    if (key === 'e') {
-      if (G.state === 'playing' && G.player && G.player.weapon === 'abyss_shuriken') {
-        e.preventDefault();
-        throwShuriken();
-      }
-      return;
-    }
     if (e.code === 'Space') {
       e.preventDefault();
       if (G.state === 'playing') {
@@ -1270,11 +1263,7 @@
     dom.soundBtn.addEventListener('click', toggleSound);
     dom.pauseSoundBtn.addEventListener('click', toggleSound);
     dom.abilityBtn.addEventListener('click', useAbility);
-    if (dom.shotBtn) dom.shotBtn.addEventListener('click', function () {
-      const p = G.player;
-      if (p && p.weapon === 'abyss_shuriken') throwShuriken();
-      else tridentCharge();
-    });
+    if (dom.shotBtn) dom.shotBtn.addEventListener('click', tridentCharge);
 
     const nameFields = [dom.nameInput, dom.pauseNameInput];
     for (let i = 0; i < nameFields.length; i++) {
@@ -2589,13 +2578,9 @@
     const p = G.player;
     if (!p) return;
     const stage = A.STAGES[p.stageIndex];
-    // Every evolution past the anglerfish grows its own shuriken; the angler
-    // itself does not have one. It is not bought, so no shop state can take
-    // it away, but a bought trident still wins the jaws when one is equipped.
-    const anglerAt = A.stageByKey ? A.stageByKey('angler') : 4;
-    const innate = p.stageIndex > anglerAt ? 'abyss_shuriken' : null;
-    const bought = A.Shop ? A.Shop.heldFor(stage && stage.key) : null;
-    const held = bought || innate;
+    // No innate projectile: the only weapon is the shop trident, carried
+    // from shark stage onward through Shop.heldFor().
+    const held = A.Shop ? A.Shop.heldFor(stage && stage.key) : null;
     if (p.weapon !== held) p.weapon = held;
     const skin = A.Shop && A.Shop.activeSlot ? A.Shop.activeSlot('skin') : null;
     if (p.weaponSkin !== skin) p.weaponSkin = skin;
@@ -2629,7 +2614,7 @@
   // ability while a shuriken is equipped (the shuriken uses E instead).
   function tridentCharge() {
     const p = G.player;
-    if (!p || p.dead || G.state !== 'playing' || !p.weapon || p.weapon === 'abyss_shuriken') return false;
+    if (!p || p.dead || G.state !== 'playing' || p.weapon !== 'ancient_trident' || p.stageIndex < 5) return false;
     // On cooldown the key still belongs to the weapon; it just does nothing.
     if (G.sim < G.chargeReadyAt) return true;
 
@@ -2642,6 +2627,7 @@
     // animal cannot be hurt, so an orca gets skewered instead of biting first.
     p.invulnUntil = Math.max(p.invulnUntil || 0, p.chargeUntil + 0.12);
     G.chargeReadyAt = G.sim + ch.cooldown;
+    if (A.Online && A.Online.attackTrident) A.Online.attackTrident();
 
     const from = A.Weapons.mouthPoint(p);
     G.camera.shake = Math.min(1, G.camera.shake + 0.22);
@@ -4355,31 +4341,29 @@
       if (f.isPlayer && f.remote) {
         const playerLabel = f.name || 'Guest';
         const country = f.showFlag ? String(f.countryCode || '').toUpperCase() : '';
+        const level = A.Levels && A.Levels.forXp ? A.Levels.forXp(f.levelXp || 0).level : 0;
+        const levelTag = '[' + level + ']';
         ctx.save();
-        ctx.globalAlpha = 0.94;
+        ctx.globalAlpha = 0.96;
         const nameFont = '600 ' + Math.max(11, f.radius * 0.48) + 'px system-ui, sans-serif';
         ctx.font = nameFont;
         ctx.textAlign = 'left';
         ctx.textBaseline = 'bottom';
-        ctx.fillStyle = '#eafaff';
         ctx.shadowColor = 'rgba(0, 12, 28, 0.9)';
         ctx.shadowBlur = 5;
         const nameWidth = ctx.measureText(playerLabel).width;
+        const levelWidth = ctx.measureText(levelTag).width;
         const labelY = f.y - f.radius * 1.18;
-        if (/^[A-Z]{2}$/.test(country)) {
-          const flagWidth = 18;
-          const flagHeight = 12;
-          const gap = 5;
-          const totalWidth = flagWidth + gap + nameWidth;
-          const startX = f.x - totalWidth / 2;
-          drawCountryFlag(ctx, country, startX, labelY - flagHeight + 2, flagWidth, flagHeight);
-          ctx.font = nameFont;
-          ctx.fillText(playerLabel, startX + flagWidth + gap, labelY);
-        } else {
-          ctx.textAlign = 'center';
-          ctx.font = nameFont;
-          ctx.fillText(playerLabel, f.x, labelY);
-        }
+        const flagWidth = /^[A-Z]{2}$/.test(country) ? 18 : 0;
+        const gap = flagWidth ? 5 : 0;
+        const totalWidth = flagWidth + gap + nameWidth + 6 + levelWidth;
+        const startX = f.x - totalWidth / 2;
+        if (flagWidth) drawCountryFlag(ctx, country, startX, labelY - 13, flagWidth, 12);
+        const nameX = startX + flagWidth + gap;
+        ctx.fillStyle = '#eafaff';
+        ctx.fillText(playerLabel, nameX, labelY);
+        ctx.fillStyle = A.Levels && A.Levels.colorFor ? A.Levels.colorFor(level) : '#a9f0ff';
+        ctx.fillText(levelTag, nameX + nameWidth + 6, labelY);
         ctx.restore();
       }
       // Carried equipment rides the same transform as the animal that owns it,
@@ -4873,17 +4857,27 @@
     const value = String(code || '').toLowerCase();
     if (!/^[a-z]{2}$/.test(value)) return false;
     let image = countryFlagImages[value];
-    if (image === false) return false;
     if (!image) {
       image = new Image();
       image.crossOrigin = 'anonymous';
       image.onload = function () { countryFlagImages[value] = image; };
-      image.onerror = function () { countryFlagImages[value] = null; };
+      image.onerror = function () { countryFlagImages[value] = false; };
       countryFlagImages[value] = image;
       image.src = 'https://flagcdn.com/w40/' + value + '.png';
+    }
+    if (image === false || !image.complete || !image.naturalWidth) {
+      const emoji = countryFlagEmoji(value.toUpperCase());
+      if (emoji) {
+        ctx.save();
+        ctx.font = Math.max(11, height + 1) + 'px "Segoe UI Emoji", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(emoji, x + width / 2, y + height / 2);
+        ctx.restore();
+        return true;
+      }
       return false;
     }
-    if (!image.complete || !image.naturalWidth) return false;
     ctx.save();
     ctx.shadowColor = 'rgba(0, 8, 18, 0.75)';
     ctx.shadowBlur = 3;
@@ -5252,7 +5246,7 @@
     applyPvPHit: function (hit) {
       const p = G.player;
       if (!p || G.state !== 'playing' || !hit) return;
-      const amount = A.clamp(Number(hit.damage) || 18, 1, 30);
+      const amount = A.clamp(Number(hit.damage) || 18, 1, 60);
       const source = {
         isPlayer: true,
         name: String(hit.attackerName || 'Player').slice(0, 16),
@@ -5265,13 +5259,17 @@
     snapshot: function () {
       const p = G.player;
       if (!p || G.state !== 'playing' || (A.Monsters && A.Monsters.active())) return null;
+      const profile = A.Account && A.Account.profile ? A.Account.profile() : null;
       return {
         name: G.playerName || 'Guest',
         x: p.x,
         y: p.y,
         angle: p.angle,
         stageIndex: p.stageIndex,
-        xp: p.xp
+        xp: p.xp,
+        levelXp: profile ? (profile.xp | 0) : 0,
+        weapon: p.weapon || null,
+        weaponSkin: p.weaponSkin || null
       };
     },
     setRemotePlayers: function (players) {
@@ -5303,6 +5301,9 @@
           remote.showFlag = entry.showFlag === true && /^[A-Z]{2}$/.test(String(entry.countryCode || ''));
           remote.countryCode = remote.showFlag ? String(entry.countryCode).toUpperCase() : '';
           remote.xp = Math.max(0, Number(entry.xp) || 0);
+          remote.levelXp = Math.max(0, Number(entry.levelXp) || 0);
+          remote.weapon = entry.weapon === 'ancient_trident' ? 'ancient_trident' : null;
+          remote.weaponSkin = typeof entry.weaponSkin === 'string' ? entry.weaponSkin : null;
           if (remote.stageIndex !== stageIndex) {
             remote.stageIndex = stageIndex;
             remote.art = stage.art;
@@ -5331,9 +5332,11 @@
             swim: 0.8,
             phase: G.sim * 3,
             xp: Math.max(0, Number(entry.xp) || 0),
+            levelXp: Math.max(0, Number(entry.levelXp) || 0),
             health: 100,
             maxHealth: 100,
-            weapon: null
+            weapon: entry.weapon === 'ancient_trident' ? 'ancient_trident' : null,
+            weaponSkin: typeof entry.weaponSkin === 'string' ? entry.weaponSkin : null
           };
         }
         next.push(remote);
