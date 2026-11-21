@@ -510,8 +510,7 @@
       const s = store();
       if (!s.accounts[key(username)]) return false;
       delete s.accounts[key(username)];
-      saveStore(s);
-      return true;
+      return saveStore(s);
     }
   };
 
