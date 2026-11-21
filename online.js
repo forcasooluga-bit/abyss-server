@@ -10,8 +10,12 @@
   let reconnectTimer = 0;
   let detectedCountryCode = '';
   const FLAG_PREF_KEY = 'abyss_show_country_flag';
-  let flagEnabled = false;
-  try { flagEnabled = localStorage.getItem(FLAG_PREF_KEY) === '1'; } catch (error) {}
+  // Country flags are visible by default; players can still switch them off in Options.
+  let flagEnabled = true;
+  try {
+    const savedFlag = localStorage.getItem(FLAG_PREF_KEY);
+    if (savedFlag !== null) flagEnabled = savedFlag === '1';
+  } catch (error) {}
 
   function detectCountry() {
     try {
@@ -116,6 +120,16 @@
     }, 3000);
   }
 
+  function attackTrident() {
+    if (!connected() || !A.GameNet || !A.GameNet.snapshot) return false;
+    const state = A.GameNet.snapshot();
+    if (!state || state.stageIndex < 5 || state.weapon !== 'ancient_trident') return false;
+    try {
+      socket.send(JSON.stringify({ type: 'trident-attack' }));
+      return true;
+    } catch (error) { return false; }
+  }
+
   function sendState() {
     if (!connected() || !A.GameNet || !A.GameNet.snapshot) return;
     const player = A.GameNet.snapshot();
@@ -143,7 +157,8 @@
     connect: connect,
     showFlag: showFlag,
     setShowFlag: setShowFlag,
-    countryCode: countryCode
+    countryCode: countryCode,
+    attackTrident: attackTrident
   };
 
   detectCountry();
