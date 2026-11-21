@@ -187,7 +187,8 @@
       if (!raw) return { owned: [], equipped: null, slots: emptySlots() };
       const o = JSON.parse(raw);
       const owned = Array.isArray(o.owned) ? o.owned.filter(function (k) { return !!BY_KEY[k]; }) : [];
-      const weapon = BY_KEY[o.equipped] && BY_KEY[o.equipped].cat === 'tridents' ? o.equipped : null;
+      const weapon = o.weaponChoiceVersion === 1 &&
+        BY_KEY[o.equipped] && BY_KEY[o.equipped].cat === 'tridents' ? o.equipped : null;
       return {
         owned: owned,
         equipped: owned.indexOf(weapon) === -1 ? null : weapon,
@@ -200,7 +201,7 @@
 
   function writeGuest(s) {
     try {
-      localStorage.setItem(GUEST_STORE, JSON.stringify({ owned: s.owned, equipped: s.equipped, slots: s.slots }));
+      localStorage.setItem(GUEST_STORE, JSON.stringify({ owned: s.owned, equipped: s.equipped, slots: s.slots, weaponChoiceVersion: 1 }));
     } catch (e) { /* a full disk must not stop the dive */ }
   }
 
@@ -246,13 +247,20 @@
     }
     if (signedIn()) {
       const p = accountProfile() || {};
-      if (!Array.isArray(p.weapons) || p.equippedWeapon === undefined || !p.shopSlots) {
-        A.Account.patchProfile({
-          weapons: state.owned,
-          equippedWeapon: state.equipped,
-          shopSlots: state.slots
-        });
+      const patch = {};
+      if (p.shopWeaponChoiceVersion !== 1) {
+        // Older builds auto-equipped a bought trident. Clear that one-time
+        // default so every player now makes an explicit Equip choice.
+        state.equipped = null;
+        patch.equippedWeapon = null;
+        patch.shopWeaponChoiceVersion = 1;
       }
+      if (!Array.isArray(p.weapons) || p.equippedWeapon === undefined || !p.shopSlots) {
+        patch.weapons = state.owned;
+        patch.shopSlots = state.slots;
+        if (patch.equippedWeapon === undefined) patch.equippedWeapon = state.equipped;
+      }
+      if (Object.keys(patch).length) A.Account.patchProfile(patch);
     }
     equippedKey = state.equipped;
   }
