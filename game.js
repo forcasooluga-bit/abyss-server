@@ -1708,7 +1708,7 @@
     // The cut is taken from this run's own XP, never from the lifetime bank,
     // and the reef lets anything at or below the fast fish keep everything.
     p.died = true;
-    p.penalized = p.stageIndex > (A.stageByKey ? A.stageByKey('fast') : 2);
+    p.penalized = p.xp > 0;
     const mirrored = saveBest(p);
     G.deathCam.x = G.camera.x;
     G.deathCam.y = G.camera.y;
@@ -1741,7 +1741,7 @@
         const paid = res.lost > 0;
         dom.deathPenalty.classList.toggle('safe', !paid);
         dom.deathPenalty.textContent = paid
-          ? '\u2212' + A.formatNumber(res.lost) + ' XP LOST \u00b7 ONE THIRD OF THIS RUN'
+          ? '\u2212' + A.formatNumber(res.lost) + ' XP LOST \u00b7 30% OF THIS RUN'
           : 'NO XP LOST \u00b7 THE SMALL ONES KEEP EVERYTHING';
         dom.deathPenalty.classList.remove('hidden');
       });
@@ -3833,6 +3833,7 @@
   // popups do, so it stays readable at any zoom and in any stage. The level
   // rides with it as `Vuxa[12]`, and its colour changes every five levels.
   function playerLevel() {
+    if (A.Account && A.Account.isDeveloper && A.Account.isDeveloper()) return 999;
     const prof = A.Account && A.Account.profile ? A.Account.profile() : null;
     const xp = prof ? (prof.xp | 0) : 0;
     if (G.nameLevelXp !== xp) {
@@ -3840,6 +3841,89 @@
       G.nameLevel = A.Levels ? A.Levels.forXp(xp).level : 0;
     }
     return G.nameLevel | 0;
+  }
+
+  function drawAnimatedLevel(ctx, level, tag, x, y) {
+    const t = G.sim || 0;
+    const pulse = 0.72 + 0.28 * (0.5 + 0.5 * Math.sin(t * 4.5));
+    ctx.save();
+    ctx.shadowBlur = level >= 15 ? 12 + 5 * pulse : 7 + 4 * pulse;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+    if (level >= 999) {
+      const grad = ctx.createLinearGradient(x, y - 10, x + 48, y + 8);
+      grad.addColorStop(0, '#fff3a6');
+      grad.addColorStop(0.32, '#d9a7ff');
+      grad.addColorStop(0.68, '#75f4ff');
+      grad.addColorStop(1, '#ffffff');
+      ctx.shadowColor = '#c48cff';
+      ctx.fillStyle = grad;
+      ctx.fillText(tag, x, y);
+      ctx.strokeStyle = 'rgba(255,225,145,0.9)';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.arc(x - 5, y - 5, 2.2 + pulse, t * 2, t * 2 + Math.PI * 1.6);
+      ctx.stroke();
+    } else if (level >= 15) {
+      ctx.shadowColor = '#ffd66e';
+      ctx.fillStyle = '#fff0a8';
+      ctx.fillText(tag, x, y);
+      ctx.strokeStyle = 'rgba(255,190,72,' + (0.45 + pulse * 0.5) + ')';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(x - 3, y - 11);
+      ctx.lineTo(x + 1 + Math.sin(t * 8) * 2, y - 5);
+      ctx.lineTo(x - 1, y - 2);
+      ctx.lineTo(x + 5, y + 3);
+      ctx.stroke();
+    } else if (level >= 10) {
+      const grad = ctx.createLinearGradient(x, y - 9, x + 42, y + 5);
+      for (let i = 0; i <= 6; i++) {
+        grad.addColorStop(i / 6, 'hsl(' + ((t * 95 + i * 58) % 360) + ', 100%, 70%)');
+      }
+      ctx.shadowColor = 'rgba(202,125,255,0.95)';
+      ctx.fillStyle = grad;
+      ctx.fillText(tag, x, y);
+    } else if (level >= 5) {
+      ctx.shadowColor = '#ff334e';
+      ctx.fillStyle = pulse > 0.88 ? '#ffb1b8' : '#ff4b5f';
+      ctx.fillText(tag, x, y);
+    } else {
+      ctx.shadowColor = '#4fe3ff';
+      ctx.fillStyle = '#a9f0ff';
+      ctx.fillText(tag, x, y);
+    }
+    ctx.restore();
+  }
+
+  function drawDeveloperAura(ctx, fish) {
+    const t = G.sim || 0;
+    const r = fish.radius * 1.42;
+    ctx.save();
+    ctx.translate(fish.x, fish.y);
+    ctx.rotate(t * 0.7);
+    ctx.globalAlpha = 0.72;
+    ctx.strokeStyle = '#d5a7ff';
+    ctx.shadowColor = '#a36bff';
+    ctx.shadowBlur = 14;
+    ctx.lineWidth = Math.max(1.5, fish.radius * 0.055);
+    ctx.beginPath();
+    ctx.ellipse(0, 0, r * 1.55, r * 0.72, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.rotate(-t * 1.6);
+    ctx.strokeStyle = '#7cf5ff';
+    ctx.shadowColor = '#61eaff';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, r * 1.72, r * 0.58, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    for (let i = 0; i < 4; i++) {
+      const a = t * 1.8 + i * Math.PI * 0.5;
+      ctx.fillStyle = i % 2 ? '#fff0a8' : '#8af7ff';
+      ctx.beginPath();
+      ctx.arc(Math.cos(a) * r * 1.55, Math.sin(a) * r * 0.72, Math.max(2, fish.radius * 0.07), 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
   }
 
   function drawNameTag(ctx) {
@@ -3874,8 +3958,7 @@
     ctx.strokeText(tag, nameX + nameW + gap, 0);
     ctx.fillStyle = '#a9f0ff';
     ctx.fillText(name, nameX, 0);
-    ctx.fillStyle = A.Levels && A.Levels.colorFor ? A.Levels.colorFor(level) : '#a9f0ff';
-    ctx.fillText(tag, nameX + nameW + gap, 0);
+    drawAnimatedLevel(ctx, level, tag, nameX + nameW + gap, 0);
     ctx.restore();
     ctx.globalAlpha = 1;
   }
@@ -4334,6 +4417,9 @@
       if (!f.isPlayer && G.sim < (f.stunnedUntil || 0)) drawStunMarks(ctx, f);
       if (!f.isPlayer && G.sim < (f.smokedUntil || 0)) drawSmokedMarks(ctx, f);
       if (f.isPlayer) drawPlayerHalo(ctx, f);
+      const isDevPlayer = f.remote ? f.dev === true :
+        !!(A.Account && A.Account.isDeveloper && A.Account.isDeveloper());
+      if (isDevPlayer) drawDeveloperAura(ctx, f);
       if (f.isPlayer && G.sim < f.invulnUntil) {
         ctx.globalAlpha = 0.68 + 0.32 * Math.abs(Math.sin(G.sim * 14));
       }
@@ -4341,7 +4427,7 @@
       if (f.isPlayer && f.remote) {
         const playerLabel = f.name || 'Guest';
         const country = f.showFlag ? String(f.countryCode || '').toUpperCase() : '';
-        const level = A.Levels && A.Levels.forXp ? A.Levels.forXp(f.levelXp || 0).level : 0;
+        const level = f.dev ? 999 : (A.Levels && A.Levels.forXp ? A.Levels.forXp(f.levelXp || 0).level : 0);
         const levelTag = '[' + level + ']';
         ctx.save();
         ctx.globalAlpha = 0.96;
@@ -4362,8 +4448,7 @@
         const nameX = startX + flagWidth + gap;
         ctx.fillStyle = '#eafaff';
         ctx.fillText(playerLabel, nameX, labelY);
-        ctx.fillStyle = A.Levels && A.Levels.colorFor ? A.Levels.colorFor(level) : '#a9f0ff';
-        ctx.fillText(levelTag, nameX + nameWidth + 6, labelY);
+        drawAnimatedLevel(ctx, level, levelTag, nameX + nameWidth + 6, labelY);
         ctx.restore();
       }
       // Carried equipment rides the same transform as the animal that owns it,
@@ -5268,6 +5353,7 @@
         stageIndex: p.stageIndex,
         xp: p.xp,
         levelXp: profile ? (profile.xp | 0) : 0,
+        dev: !!(A.Account && A.Account.isDeveloper && A.Account.isDeveloper()),
         weapon: p.weapon || null,
         weaponSkin: p.weaponSkin || null
       };
@@ -5302,6 +5388,7 @@
           remote.countryCode = remote.showFlag ? String(entry.countryCode).toUpperCase() : '';
           remote.xp = Math.max(0, Number(entry.xp) || 0);
           remote.levelXp = Math.max(0, Number(entry.levelXp) || 0);
+          remote.dev = entry.dev === true;
           remote.weapon = entry.weapon === 'ancient_trident' ? 'ancient_trident' : null;
           remote.weaponSkin = typeof entry.weaponSkin === 'string' ? entry.weaponSkin : null;
           if (remote.stageIndex !== stageIndex) {
@@ -5333,6 +5420,7 @@
             phase: G.sim * 3,
             xp: Math.max(0, Number(entry.xp) || 0),
             levelXp: Math.max(0, Number(entry.levelXp) || 0),
+            dev: entry.dev === true,
             health: 100,
             maxHealth: 100,
             weapon: entry.weapon === 'ancient_trident' ? 'ancient_trident' : null,
