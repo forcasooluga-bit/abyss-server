@@ -391,7 +391,8 @@ wss.on('connection', (ws) => {
     player.stageIndex = stageIndex;
     player.xp = Math.max(0, Math.min(2147483647, Math.floor(xp)));
     player.levelXp = Math.max(0, Math.min(2147483647, Math.floor(levelXp)));
-    player.dev = state.dev === true && player.name.toLowerCase() === 'vuxadev';
+    player.accountUsername = String(state.accountUsername || '').replace(/[<>\\u0000-\\u001f]/g, '').slice(0, 16);
+    player.dev = state.dev === true && player.accountUsername.toLowerCase() === 'vuxadev';
     player.weapon = state.weapon === 'ancient_trident' ? 'ancient_trident' : null;
     player.weaponSkin = ['skin_tidewrought', 'skin_abyssal_crown'].includes(state.weaponSkin) ? state.weaponSkin : null;
     player.showFlag = state.showFlag === true && /^[A-Z]{2}$/.test(String(state.countryCode || ''));
