@@ -48,19 +48,6 @@
       art: 'trident'
     },
     {
-      key: 'abyss_shuriken',
-      cat: 'tridents',
-      name: 'Abyss Shuriken',
-      price: 0,
-      rarity: 'Innate',
-      minStage: 'shark',
-      innate: true,
-      desc: 'Not for sale. Every evolution above the anglerfish grows this four-bladed star in ' +
-            'its own jaws — the angler itself has none. With no other weapon equipped, SPACE ' +
-            'throws it up through the water; it takes a third of the health of anything it touches.',
-      art: 'abyss_shuriken'
-    },
-    {
       key: 'skin_tidewrought',
       cat: 'trident_skins',
       name: 'Tidewrought Poseidon',
