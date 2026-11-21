@@ -162,6 +162,9 @@ function publicRoster() {
     angle: player.angle,
     stageIndex: player.stageIndex,
     xp: player.xp,
+    levelXp: player.levelXp,
+    weapon: player.weapon,
+    weaponSkin: player.weaponSkin,
     showFlag: player.showFlag,
     countryCode: player.showFlag ? player.countryCode : ''
   }));
@@ -230,6 +233,49 @@ function resolvePlayerCombat() {
   }
 }
 
+// Server-validated Poseidon charge. The client only sends an input event;
+// position, facing, stage, weapon ownership state and cooldown come from the
+// latest server-held snapshot, never from client-supplied target coordinates.
+function resolveTridentAttack(attacker) {
+  const now = Date.now();
+  if (!attacker || now - attacker.lastUpdate > 500) return;
+  if (attacker.stageIndex < 5 || attacker.weapon !== 'ancient_trident') return;
+  if (now - (attacker.lastTridentAttack || 0) < 1900) return;
+  attacker.lastTridentAttack = now;
+
+  const attackRadius = STAGE_RADII[attacker.stageIndex] || 13;
+  const reach = Math.max(190, attackRadius * 4.4);
+  let target = null;
+  let bestDistance = Infinity;
+  for (const candidate of onlinePlayers.values()) {
+    if (candidate.id === attacker.id || now - candidate.lastUpdate > 500) continue;
+    const dx = candidate.x - attacker.x;
+    const dy = candidate.y - attacker.y;
+    const distance = Math.hypot(dx, dy);
+    if (distance > reach + (STAGE_RADII[candidate.stageIndex] || 13) * 0.45) continue;
+    let turn = Math.atan2(dy, dx) - attacker.angle;
+    while (turn > Math.PI) turn -= Math.PI * 2;
+    while (turn < -Math.PI) turn += Math.PI * 2;
+    if (Math.abs(turn) > 0.72 || distance >= bestDistance) continue;
+    bestDistance = distance;
+    target = candidate;
+  }
+  if (!target) return;
+
+  const targetRadius = STAGE_RADII[target.stageIndex] || 13;
+  const sizeGap = Math.max(0, attackRadius - targetRadius);
+  const damage = Math.max(24, Math.min(52, Math.round(28 + sizeGap * 0.28)));
+  const victimSocket = Array.from(wss.clients).find((socket) => socket.playerId === target.id);
+  const attackerSocket = Array.from(wss.clients).find((socket) => socket.playerId === attacker.id);
+  if (victimSocket) sendJson(victimSocket, {
+    type: 'pvp-hit', damage, attackerName: attacker.name,
+    x: attacker.x, y: attacker.y
+  });
+  if (attackerSocket) sendJson(attackerSocket, {
+    type: 'pvp-hit-confirm', targetName: target.name
+  });
+}
+
 server.on('upgrade', (req, socket, head) => {
   let pathname = '/';
   try {
@@ -274,6 +320,10 @@ wss.on('connection', (ws) => {
     angle: 0,
     stageIndex: 0,
     xp: 0,
+    levelXp: 0,
+    weapon: null,
+    weaponSkin: null,
+    lastTridentAttack: 0,
     lastUpdate: 0
   };
   ws.playerId = id;
@@ -288,7 +338,12 @@ wss.on('connection', (ws) => {
     } catch {
       return;
     }
-    if (!message || message.type !== 'state') return;
+    if (!message || typeof message !== 'object') return;
+    if (message.type === 'trident-attack') {
+      resolveTridentAttack(player);
+      return;
+    }
+    if (message.type !== 'state') return;
 
     const now = Date.now();
     if (now - player.lastUpdate < 25) return;
@@ -301,8 +356,9 @@ wss.on('connection', (ws) => {
     const angle = Number(state.angle);
     const stageIndex = Number(state.stageIndex);
     const xp = Number(state.xp);
+    const levelXp = Number(state.levelXp == null ? xp : state.levelXp);
 
-    if (![x, y, angle, stageIndex, xp].every(Number.isFinite)) return;
+    if (![x, y, angle, stageIndex, xp, levelXp].every(Number.isFinite)) return;
     if (x < 0 || x > 50000 || y < 0 || y > 50000) return;
     if (!Number.isInteger(stageIndex) || stageIndex < 0 || stageIndex > 30) return;
 
@@ -315,6 +371,9 @@ wss.on('connection', (ws) => {
     player.angle = Math.max(-Math.PI * 4, Math.min(Math.PI * 4, angle));
     player.stageIndex = stageIndex;
     player.xp = Math.max(0, Math.min(2147483647, Math.floor(xp)));
+    player.levelXp = Math.max(0, Math.min(2147483647, Math.floor(levelXp)));
+    player.weapon = state.weapon === 'ancient_trident' ? 'ancient_trident' : null;
+    player.weaponSkin = ['skin_tidewrought', 'skin_abyssal_crown'].includes(state.weaponSkin) ? state.weaponSkin : null;
     player.showFlag = state.showFlag === true && /^[A-Z]{2}$/.test(String(state.countryCode || ''));
     player.countryCode = player.showFlag ? String(state.countryCode).toUpperCase() : '';
   });
