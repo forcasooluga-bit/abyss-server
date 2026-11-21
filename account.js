@@ -493,8 +493,12 @@
         throw err;
       }
       delete s.accounts[oldKey];
+      const oldUsername = a.username;
       a.username = nextUsername;
       a.profile.username = nextUsername;
+      if (!a.profile.displayName || a.profile.displayName === oldUsername) {
+        a.profile.displayName = nextUsername;
+      }
       a.updatedAt = Date.now();
       a.profile.updatedAt = Date.now();
       s.accounts[nextKey] = a;
