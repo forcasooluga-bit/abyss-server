@@ -300,7 +300,8 @@
     let equipped = state.equipped;
     const slots = { skin: state.slots.skin, pet: state.slots.pet, kill: state.slots.kill, evolution: state.slots.evolution };
     if (item.cat === 'tridents') {
-      equipped = equipped || key;
+      // Buying unlocks the weapon but never equips it automatically.
+      // Players choose when to put it in their jaws from the Equip button.
     } else {
       const slot = SLOT_BY_CAT[item.cat];
       if (slot && !slots[slot]) slots[slot] = key;
@@ -376,6 +377,15 @@
   // ------------------------------------------------------------------
   // Queries
   // ------------------------------------------------------------------
+  function grantAll() {
+    if (!signedIn() || !A.Account.isDeveloper || !A.Account.isDeveloper()) return false;
+    const all = CATALOG.map(function (item) { return item.key; });
+    const same = all.length === state.owned.length && all.every(function (key) { return state.owned.indexOf(key) !== -1; });
+    if (same) return true;
+    commit({ owned: all, equipped: state.equipped, slots: state.slots });
+    return true;
+  }
+
   function itemsIn(cat) {
     return CATALOG.filter(function (it) { return it.cat === cat; });
   }
@@ -397,8 +407,13 @@
       if (A.Account && A.Account.onChange) {
         // The session restore lands after boot, so the account can arrive
         // later than the shelf was first opened. Follow it.
-        A.Account.onChange(function () { load(); emit(); });
+        A.Account.onChange(function () {
+          load();
+          if (A.Account.isDeveloper && A.Account.isDeveloper()) grantAll();
+          emit();
+        });
       }
+      if (A.Account && A.Account.isDeveloper && A.Account.isDeveloper()) grantAll();
       try {
         window.addEventListener('storage', function (ev) {
           if (ev && ev.key === GUEST_STORE && !signedIn()) { load(); emit(); }
@@ -424,6 +439,7 @@
     isSlotEquipped: isSlotEquipped,
     slots: function () { return state.slots; },
     heldFor: heldFor,
+    grantAll: grantAll,
     onChange: function (cb) { if (typeof cb === 'function') listeners.push(cb); },
     refresh: function () { load(); emit(); }
   };
