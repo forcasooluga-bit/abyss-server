@@ -173,7 +173,8 @@
 
   function fromProfile(p) {
     const owned = Array.isArray(p.weapons) ? p.weapons.slice() : [];
-    const weapon = typeof p.equippedWeapon === 'string' ? p.equippedWeapon : null;
+    const weapon = p.shopWeaponChoiceVersion === 1 &&
+      typeof p.equippedWeapon === 'string' ? p.equippedWeapon : null;
     return {
       owned: owned,
       equipped: BY_KEY[weapon] && BY_KEY[weapon].cat === 'tridents' ? weapon : null,
@@ -302,9 +303,8 @@
     }
     const owned = state.owned.slice();
     owned.push(key);
-    // Buying the first trident puts it in your jaws. Any other shelf fills its
-    // own slot if that slot is still empty, so a new pet starts swimming at once
-    // without disturbing the weapon or the other cosmetics.
+    // Purchases unlock items without equipping them. Other cosmetic shelves
+    // fill an empty slot automatically; tridents always require a manual choice.
     let equipped = state.equipped;
     const slots = { skin: state.slots.skin, pet: state.slots.pet, kill: state.slots.kill, evolution: state.slots.evolution };
     if (item.cat === 'tridents') {
