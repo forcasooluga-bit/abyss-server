@@ -163,6 +163,7 @@ function publicRoster() {
     stageIndex: player.stageIndex,
     xp: player.xp,
     levelXp: player.levelXp,
+    dev: player.dev === true,
     weapon: player.weapon,
     weaponSkin: player.weaponSkin,
     showFlag: player.showFlag,
@@ -340,6 +341,24 @@ wss.on('connection', (ws) => {
     }
     if (!message || typeof message !== 'object') return;
     if (message.type === 'trident-attack') {
+      const attackState = message.player;
+      if (attackState && typeof attackState === 'object') {
+        const ax = Number(attackState.x);
+        const ay = Number(attackState.y);
+        const aa = Number(attackState.angle);
+        const as = Number(attackState.stageIndex);
+        if ([ax, ay, aa, as].every(Number.isFinite) &&
+            ax >= 0 && ax <= 50000 && ay >= 0 && ay <= 50000 &&
+            Number.isInteger(as) && as >= 5 && as < STAGE_RADII.length &&
+            attackState.weapon === 'ancient_trident') {
+          player.x = ax;
+          player.y = ay;
+          player.angle = Math.max(-Math.PI * 4, Math.min(Math.PI * 4, aa));
+          player.stageIndex = as;
+          player.weapon = 'ancient_trident';
+          player.lastUpdate = Date.now();
+        }
+      }
       resolveTridentAttack(player);
       return;
     }
@@ -372,6 +391,7 @@ wss.on('connection', (ws) => {
     player.stageIndex = stageIndex;
     player.xp = Math.max(0, Math.min(2147483647, Math.floor(xp)));
     player.levelXp = Math.max(0, Math.min(2147483647, Math.floor(levelXp)));
+    player.dev = state.dev === true && player.name.toLowerCase() === 'vuxadev';
     player.weapon = state.weapon === 'ancient_trident' ? 'ancient_trident' : null;
     player.weaponSkin = ['skin_tidewrought', 'skin_abyssal_crown'].includes(state.weaponSkin) ? state.weaponSkin : null;
     player.showFlag = state.showFlag === true && /^[A-Z]{2}$/.test(String(state.countryCode || ''));
