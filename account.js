@@ -481,6 +481,27 @@
       return a.profile;
     },
 
+    async rename(username, nextUsername) {
+      const s = store();
+      const oldKey = key(username);
+      const nextKey = key(nextUsername);
+      const a = s.accounts[oldKey];
+      if (!a) return null;
+      if (oldKey !== nextKey && s.accounts[nextKey]) {
+        const err = new Error('That username is already taken on this device.');
+        err.field = 'username';
+        throw err;
+      }
+      delete s.accounts[oldKey];
+      a.username = nextUsername;
+      a.profile.username = nextUsername;
+      a.updatedAt = Date.now();
+      a.profile.updatedAt = Date.now();
+      s.accounts[nextKey] = a;
+      if (!saveStore(s)) throw new Error('Could not save the new username.');
+      return { username: nextUsername, profile: a.profile };
+    },
+
     async remove(username) {
       const s = store();
       if (!s.accounts[key(username)]) return false;
@@ -707,6 +728,47 @@
       return current ? { username: current.username, profile: current.profile } : null;
     },
 
+    // This build has local accounts only. The Vuxadev flag grants the creator
+    // cosmetics in this client; it is not a substitute for server authentication.
+    isDeveloper() {
+      return !!current && mode === 'local' &&
+        String(current.username || '').toLowerCase() === 'vuxadev';
+    },
+
+    async changeUsername(raw, password) {
+      if (!current) return { ok: false, error: 'Sign in first.' };
+      if (mode !== 'local') return { ok: false, error: 'Username changes are not available on the remote account service yet.' };
+      const next = String(raw || '').trim();
+      const issue = Account.validateUsername(next);
+      if (issue) return { ok: false, error: issue };
+      if (key(next) === key(current.username)) return { ok: true, username: current.username };
+      const verified = await LocalProvider.verify(current.username, String(password || ''));
+      if (!verified) return { ok: false, error: 'Incorrect password.' };
+      try {
+        const renamed = await LocalProvider.rename(current.username, next);
+        current = renamed;
+        writeSession({ username: renamed.username, since: Date.now() });
+        Account.emit();
+        return { ok: true, username: renamed.username };
+      } catch (err) {
+        return { ok: false, error: err.message || 'Could not change username.' };
+      }
+    },
+
+    async deleteCurrent(password) {
+      if (!current) return { ok: false, error: 'No account is signed in.' };
+      if (mode !== 'local') return { ok: false, error: 'Account deletion must be done through the online account service.' };
+      const verified = await LocalProvider.verify(current.username, String(password || ''));
+      if (!verified) return { ok: false, error: 'Incorrect password.' };
+      const username = current.username;
+      const removed = await LocalProvider.remove(username);
+      if (!removed) return { ok: false, error: 'Could not delete this account.' };
+      current = null;
+      writeSession(null);
+      Account.emit();
+      return { ok: true };
+    },
+
     profile() {
       return current ? current.profile : null;
     },
@@ -873,11 +935,12 @@
       return { ok: true, username: rec.username };
     },
 
-    logOut() {
+    async logOut() {
+      const wasRemote = mode === 'remote';
       current = null;
       writeSession(null);
-      if (mode === 'remote' && RemoteProvider.logout) RemoteProvider.logout();
       Account.emit();
+      if (wasRemote && RemoteProvider.logout) await RemoteProvider.logout();
       return { ok: true };
     },
 
@@ -897,7 +960,7 @@
       let lost = 0;
       if (run.died) {
         p.stats.deaths = (p.stats.deaths | 0) + 1;
-        if (run.penalized) lost = Math.floor(earned / 3);
+        if (run.penalized) lost = Math.floor(earned * 0.30);
       }
       p.xp = Math.max(0, (p.xp | 0) + earned - lost);
       p.stats.runs = (p.stats.runs | 0) + 1;
