@@ -125,7 +125,7 @@
     const state = A.GameNet.snapshot();
     if (!state || state.stageIndex < 5 || state.weapon !== 'ancient_trident') return false;
     try {
-      socket.send(JSON.stringify({ type: 'trident-attack' }));
+      socket.send(JSON.stringify({ type: 'trident-attack', player: state }));
       return true;
     } catch (error) { return false; }
   }
