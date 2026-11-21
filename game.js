@@ -5354,6 +5354,7 @@
         xp: p.xp,
         levelXp: profile ? (profile.xp | 0) : 0,
         dev: !!(A.Account && A.Account.isDeveloper && A.Account.isDeveloper()),
+        accountUsername: A.Account && A.Account.currentUser ? ((A.Account.currentUser() || {}).username || '') : '',
         weapon: p.weapon || null,
         weaponSkin: p.weaponSkin || null
       };
