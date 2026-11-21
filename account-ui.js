@@ -21,6 +21,9 @@
     profile: $('accountProfile'),
     profileBtn: $('profileBtn'),
     logoutBtn: $('logoutBtn'),
+    renameAccountBtn: $('renameAccountBtn'),
+    switchAccountBtn: $('switchAccountBtn'),
+    deleteAccountBtn: $('deleteAccountBtn'),
     modal: $('authModal'),
     close: $('authClose'),
     tabs: document.querySelector('.auth-tabs'),
@@ -366,7 +369,8 @@
       const crystals = s.profile ? s.profile.crystals | 0 : 0;
       if (el.crystals) el.crystals.textContent = num(crystals);
       if (el.level) {
-        const lv = s.profile && A.Levels ? A.Levels.forXp(s.profile.xp | 0).level : 0;
+        const lv = A.Account.isDeveloper && A.Account.isDeveloper()
+          ? 999 : (s.profile && A.Levels ? A.Levels.forXp(s.profile.xp | 0).level : 0);
         el.level.textContent = 'LV ' + lv;
       }
       fillProfile(s.profile);
@@ -513,11 +517,43 @@
       });
     }
     if (el.logoutBtn) {
-      el.logoutBtn.addEventListener('click', function () {
-        A.Account.logOut();
-        el.profile.hidden = true;
+      el.logoutBtn.addEventListener('click', async function () {
+        await A.Account.logOut();
+        if (el.profile) el.profile.hidden = true;
         if (el.profileBtn) el.profileBtn.textContent = 'PROFILE';
         say('Signed out. This device keeps playing as a guest.');
+      });
+    }
+    if (el.switchAccountBtn) {
+      el.switchAccountBtn.addEventListener('click', async function () {
+        await A.Account.logOut();
+        if (el.profile) el.profile.hidden = true;
+        if (el.profileBtn) el.profileBtn.textContent = 'PROFILE';
+        openAuth('login');
+        say('Signed out. Log in with another account.');
+      });
+    }
+    if (el.renameAccountBtn) {
+      el.renameAccountBtn.addEventListener('click', async function () {
+        const current = A.Account.currentUser();
+        if (!current) return;
+        const next = window.prompt('Choose your new account username:', current.username);
+        if (next == null) return;
+        const password = window.prompt('Confirm your password to rename the account:');
+        if (password == null) return;
+        const result = await A.Account.changeUsername(next, password);
+        if (result.ok) say('Username changed to ' + result.username + '.');
+        else say(result.error || 'Could not rename account.');
+      });
+    }
+    if (el.deleteAccountBtn) {
+      el.deleteAccountBtn.addEventListener('click', async function () {
+        if (!window.confirm('Permanently delete this account and its saved progress from this browser?')) return;
+        const password = window.prompt('Enter your password to confirm account deletion:');
+        if (password == null) return;
+        const result = await A.Account.deleteCurrent(password);
+        if (result.ok) say('Account deleted. You are now playing as Guest.');
+        else say(result.error || 'Could not delete account.');
       });
     }
   }
