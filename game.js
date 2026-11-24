@@ -4671,7 +4671,6 @@
     ctx.translate(-G.camera.x, -G.camera.y);
 
     G.world.drawStatic(ctx, view, G.sim, lowDetail);
-    if (A.Monsters) A.Monsters.drawEntrance(ctx, view, G.sim);
     drawFoods(ctx, view);
     drawFishLayer(ctx, view);
     if (A.Collection) A.Collection.drawWorld(ctx, G.sim);
@@ -5347,7 +5346,7 @@
     },
     snapshot: function () {
       const p = G.player;
-      if (!p || G.state !== 'playing' || (A.Monsters && A.Monsters.active())) return null;
+      if (!p || G.state !== 'playing') return null;
       const profile = A.Account && A.Account.profile ? A.Account.profile() : null;
       return {
         name: G.playerName || 'Guest',
