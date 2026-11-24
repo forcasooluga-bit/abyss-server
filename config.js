@@ -3,7 +3,7 @@
 
   const A = window.ABYSS = window.ABYSS || {};
 
-  A.WORLD = { w: 14000, h: 9600, margin: 150 };
+  A.WORLD = { w: 21000, h: 9600, margin: 150 };
   A.TAU = Math.PI * 2;
   A.PI = Math.PI;
 
