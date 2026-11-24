@@ -1169,15 +1169,32 @@
   // ------------------------------------------------------------------
   // Public hooks
   // ------------------------------------------------------------------
+  function playRemoteEffect(kind, key, f) {
+    if (!f) return;
+    if (kind === 'evolution') {
+      if (key === EVO_KEY) bloom(f.x, f.y, f.radius || 20);
+      else if (key === VORTEX_KEY) nebulaVortex(f.x, f.y, f.radius || 20);
+    } else if (kind === 'kill') {
+      if (key === KILL_KEY) wake(f);
+      else if (key === RIFT_KEY) riftCollapse(f);
+    }
+  }
+
   function onEvolve(p) {
-    if(!p)return;const key=activeSlot('evolution');
-    if(key===EVO_KEY)bloom(p.x,p.y,p.radius||20);
-    else if(key===VORTEX_KEY)nebulaVortex(p.x,p.y,p.radius||20);
+    if (!p) return;
+    const key = activeSlot('evolution');
+    playRemoteEffect('evolution', key, p);
+    if (key && A.Online && A.Online.emitCosmetic) {
+      A.Online.emitCosmetic('evolution', key, p);
+    }
   }
   function onKill(f) {
-    if(!f)return;const key=activeSlot('kill');
-    if(key===KILL_KEY)wake(f);
-    else if(key===RIFT_KEY)riftCollapse(f);
+    if (!f) return;
+    const key = activeSlot('kill');
+    playRemoteEffect('kill', key, f);
+    if (key && A.Online && A.Online.emitCosmetic) {
+      A.Online.emitCosmetic('kill', key, f);
+    }
   }
 
   function update(dt) {
@@ -1205,6 +1222,31 @@
     drawMarks(ctx, sim);
     if (PETS.blue_tang.active) drawBlueTang(ctx, PETS.blue_tang, sim, p);
     if (PETS.lionfish.active) drawPet(ctx, PETS.lionfish, sim, p);
+
+    // Remote companions are derived from the smoothed remote fish position,
+    // never from a stale world-space pet coordinate. This prevents pets
+    // snapping to the origin or lagging far behind after turns/teleports.
+    const remotes = g.remotePlayers || [];
+    for (let i = 0; i < remotes.length; i++) {
+      const owner = remotes[i];
+      const key = owner.petKey;
+      if (key !== TANG_KEY && key !== LION_KEY) continue;
+      const back = owner.angle + Math.PI;
+      const side = owner.angle + Math.PI / 2;
+      const hold = key === TANG_KEY ? PET_HOLD.blue_tang : PET_HOLD.lionfish;
+      const phase = sim * 1.4 + (owner.phase || 0);
+      const sway = Math.sin(phase) * owner.radius * 0.10;
+      const pet = {
+        x: owner.x + Math.cos(back) * owner.radius * hold.back +
+          Math.cos(side) * (owner.radius * hold.side + sway),
+        y: owner.y + Math.sin(back) * owner.radius * hold.back +
+          Math.sin(side) * (owner.radius * hold.side + sway),
+        angle: owner.angle, bank: 0, speed: 35,
+        phase: owner.phase || 0, radius: owner.radius
+      };
+      if (key === TANG_KEY) drawBlueTang(ctx, pet, sim, owner);
+      else drawPet(ctx, pet, sim, owner);
+    }
   }
 
   function reset() {
@@ -1223,6 +1265,7 @@
     skinKey: 'skin_tidewrought',
     onEvolve: onEvolve,
     onKill: onKill,
+    playRemoteEffect: playRemoteEffect,
     update: update,
     drawWorld: drawWorld,
     drawPreview: drawPreview,
