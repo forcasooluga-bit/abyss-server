@@ -90,6 +90,11 @@
         if (A.GameNet && A.GameNet.applyPvPHit) A.GameNet.applyPvPHit(message);
       } else if (message.type === 'pvp-hit-confirm') {
         if (A.game && A.game.ui && A.game.ui.toast) A.game.ui.toast('HIT CONFIRMED · ' + String(message.targetName || 'PLAYER'), 1100);
+      } else if (message.type === 'cosmetic-event') {
+        if (A.Collection && A.Collection.playRemoteEffect) {
+          const event = message.event || {};
+          A.Collection.playRemoteEffect(event.kind, event.key, event);
+        }
       } else if (message.type === 'players' && Array.isArray(message.players)) {
         roster = message.players.filter(function (player) {
           return player && String(player.id) !== playerId;
@@ -130,6 +135,28 @@
     } catch (error) { return false; }
   }
 
+  function emitCosmetic(kind, key, fish) {
+    if (!connected() || !fish || !['kill', 'evolution'].includes(kind)) return false;
+    try {
+      socket.send(JSON.stringify({
+        type: 'cosmetic-event',
+        event: {
+          kind: kind,
+          key: String(key || ''),
+          x: Number(fish.x) || 0,
+          y: Number(fish.y) || 0,
+          radius: Math.max(6, Math.min(180, Number(fish.radius) || 20)),
+          angle: Number(fish.angle) || 0,
+          phase: Number(fish.phase) || 0,
+          swim: Number(fish.swim) || 0,
+          art: fish.art || null,
+          colors: fish.colors || null
+        }
+      }));
+      return true;
+    } catch (error) { return false; }
+  }
+
   function sendState() {
     if (!connected() || !A.GameNet || !A.GameNet.snapshot) return;
     const player = A.GameNet.snapshot();
@@ -158,7 +185,8 @@
     showFlag: showFlag,
     setShowFlag: setShowFlag,
     countryCode: countryCode,
-    attackTrident: attackTrident
+    attackTrident: attackTrident,
+    emitCosmetic: emitCosmetic
   };
 
   detectCountry();
