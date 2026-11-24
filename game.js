@@ -5375,7 +5375,10 @@
         dev: !!(A.Account && A.Account.isDeveloper && A.Account.isDeveloper()),
         accountUsername: A.Account && A.Account.currentUser ? ((A.Account.currentUser() || {}).username || '') : '',
         weapon: p.weapon || null,
-        weaponSkin: p.weaponSkin || null
+        weaponSkin: p.weaponSkin || null,
+        petKey: A.Shop && A.Shop.activeSlot ? A.Shop.activeSlot('pet') : null,
+        killEffectKey: A.Shop && A.Shop.activeSlot ? A.Shop.activeSlot('kill') : null,
+        evolutionEffectKey: A.Shop && A.Shop.activeSlot ? A.Shop.activeSlot('evolution') : null
       };
     },
     setRemotePlayers: function (players) {
@@ -5411,6 +5414,9 @@
           remote.dev = entry.dev === true;
           remote.weapon = entry.weapon === 'ancient_trident' ? 'ancient_trident' : null;
           remote.weaponSkin = typeof entry.weaponSkin === 'string' ? entry.weaponSkin : null;
+          remote.petKey = entry.petKey === 'pet_lionfish' || entry.petKey === 'pet_blue_tang' ? entry.petKey : null;
+          remote.killEffectKey = typeof entry.killEffectKey === 'string' ? entry.killEffectKey : null;
+          remote.evolutionEffectKey = typeof entry.evolutionEffectKey === 'string' ? entry.evolutionEffectKey : null;
           if (remote.stageIndex !== stageIndex) {
             remote.stageIndex = stageIndex;
             remote.art = stage.art;
@@ -5444,7 +5450,10 @@
             health: 100,
             maxHealth: 100,
             weapon: entry.weapon === 'ancient_trident' ? 'ancient_trident' : null,
-            weaponSkin: typeof entry.weaponSkin === 'string' ? entry.weaponSkin : null
+            weaponSkin: typeof entry.weaponSkin === 'string' ? entry.weaponSkin : null,
+            petKey: entry.petKey === 'pet_lionfish' || entry.petKey === 'pet_blue_tang' ? entry.petKey : null,
+            killEffectKey: typeof entry.killEffectKey === 'string' ? entry.killEffectKey : null,
+            evolutionEffectKey: typeof entry.evolutionEffectKey === 'string' ? entry.evolutionEffectKey : null
           };
         }
         next.push(remote);
