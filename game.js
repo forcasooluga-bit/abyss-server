@@ -406,13 +406,15 @@
   // Run lifecycle
   // ------------------------------------------------------------------
   function createPlayer() {
-    const stage = A.STAGES[0];
+    const developer = !!(A.Account && A.Account.isDeveloper && A.Account.isDeveloper());
+    const startStageIndex = developer ? A.SHARK_TIER : 0;
+    const stage = A.STAGES[startStageIndex];
     const x = A.clamp(W.w / 2 + A.rand(-900, 900), W.margin + 60, W.w - W.margin - 60);
     const y = A.clamp(W.h * 0.085 + A.rand(-240, 240), W.margin + 60, W.h - W.margin - 60);
     G.player = {
       isPlayer: true,
       name: 'You',
-      stageIndex: 0,
+      stageIndex: startStageIndex,
       art: stage.art,
       colors: stage.palette,
       x: x,
@@ -1597,6 +1599,11 @@
   function updateVitals(dt) {
     const p = G.player;
     if (!p) return;
+    if (A.Account && A.Account.isDeveloper && A.Account.isDeveloper()) {
+      p.health = p.maxHealth;
+      p.hunger = p.maxHunger;
+      return;
+    }
     p.hunger = Math.max(0, p.hunger - dt * 0.5);
     if (p.hunger <= 0) {
       p.health -= dt * 4;
@@ -1666,6 +1673,13 @@
   function damagePlayer(amount, source) {
     const p = G.player;
     if (!p || G.state !== 'playing') return;
+    // VuxaDev is a local developer account. Ignore every damage source for
+    // this account; ordinary accounts keep the normal combat rules.
+    if (A.Account && A.Account.isDeveloper && A.Account.isDeveloper()) {
+      p.health = p.maxHealth;
+      p.hunger = p.maxHunger;
+      return;
+    }
     if (G.sim < p.invulnUntil) return;
 
     const shieldActive = p.ability.id === 'shield' && G.sim < p.abilityActiveUntil;
