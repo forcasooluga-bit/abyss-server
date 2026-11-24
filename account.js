@@ -731,11 +731,11 @@
       return current ? { username: current.username, profile: current.profile } : null;
     },
 
-    // This build has local accounts only. The Vuxadev flag grants the creator
+    // This build has local accounts only. The VuxaDev123 flag grants the creator
     // cosmetics in this client; it is not a substitute for server authentication.
     isDeveloper() {
       return !!current && mode === 'local' &&
-        String(current.username || '').toLowerCase() === 'vuxadev';
+        String(current.username || '').toLowerCase() === 'vuxadev123';
     },
 
     async changeUsername(raw, password) {
