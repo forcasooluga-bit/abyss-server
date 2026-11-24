@@ -361,7 +361,11 @@ wss.on('connection', (ws) => {
         radius: Math.max(6, Math.min(180, radius)),
         angle: Number.isFinite(Number(event.angle)) ? Number(event.angle) : 0,
         phase: Number.isFinite(Number(event.phase)) ? Number(event.phase) : 0,
-        swim: Number.isFinite(Number(event.swim)) ? Number(event.swim) : 0
+        swim: Number.isFinite(Number(event.swim)) ? Number(event.swim) : 0,
+        art: typeof event.art === 'string' ? event.art.slice(0, 40) : null,
+        colors: event.colors && typeof event.colors === 'object' &&
+          !Array.isArray(event.colors) && JSON.stringify(event.colors).length <= 500
+          ? event.colors : null
       };
       for (const client of wss.clients) {
         if (client !== ws) sendJson(client, { type: 'cosmetic-event', event: cleanEvent });
