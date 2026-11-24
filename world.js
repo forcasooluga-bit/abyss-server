@@ -1906,7 +1906,15 @@
         stack.shade = mixHex(stack.color, '#03060c', 1 - lit);
         stack.shelfColor = mixHex(stack.color, '#a8ecff', 0.05 + 0.17 * lit);
         stack.poi = (i % 3 === 0) ? 'Sea Spire' : null;
+        // A few of the existing sea spires have natural arch openings.
+        // They are purely visual passages: ordinary fish and players can swim
+        // through them without a new collision rule or special interaction.
+        stack.cave = (i % 2 === 0);
         this.stacks.push(stack);
+        if (stack.cave) this.caves.push({
+          x: x, y: baseY - height * 0.40,
+          r: width * 0.42, label: null
+        });
         if (stack.poi) this.caves.push({ x: x, y: baseY - height * 0.55, r: width * 1.5, label: stack.poi });
       }
 
@@ -3111,6 +3119,40 @@
         ctx.strokeStyle = 'rgba(5, 34, 48, 0.85)';
         ctx.lineWidth = 3;
         ctx.stroke();
+
+        // Dark, naturally eroded archways make selected spires feel like
+        // explorable caves. This is scenery only; the existing open-water
+        // movement and fish AI remain unchanged.
+        if (s.cave) {
+          const cw = s.width * 0.72;
+          const ch = Math.max(72, s.height * 0.105);
+          const cy = -s.height * 0.43;
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(-cw * 0.5, cy);
+          ctx.quadraticCurveTo(-cw * 0.5, cy - ch * 1.35, 0, cy - ch * 1.35);
+          ctx.quadraticCurveTo(cw * 0.5, cy - ch * 1.35, cw * 0.5, cy);
+          ctx.lineTo(cw * 0.5, cy + ch * 0.55);
+          ctx.quadraticCurveTo(0, cy + ch * 0.82, -cw * 0.5, cy + ch * 0.55);
+          ctx.closePath();
+          const caveShade = ctx.createLinearGradient(0, cy - ch, 0, cy + ch);
+          caveShade.addColorStop(0, '#010a13');
+          caveShade.addColorStop(0.68, '#031827');
+          caveShade.addColorStop(1, '#0a3545');
+          ctx.fillStyle = caveShade;
+          ctx.fill();
+          ctx.strokeStyle = 'rgba(1, 13, 22, 0.95)';
+          ctx.lineWidth = Math.max(7, s.width * 0.055);
+          ctx.stroke();
+          ctx.globalAlpha = 0.24;
+          ctx.strokeStyle = '#8ed9e8';
+          ctx.lineWidth = Math.max(2, s.width * 0.012);
+          ctx.beginPath();
+          ctx.moveTo(-cw * 0.46, cy + 2);
+          ctx.quadraticCurveTo(-cw * 0.45, cy - ch * 1.27, 0, cy - ch * 1.29);
+          ctx.stroke();
+          ctx.restore();
+        }
 
         // Shelves carry coral gardens, so they read as ledges at a distance
         for (let k = 0; k < s.shelves.length; k++) {
