@@ -166,6 +166,9 @@ function publicRoster() {
     dev: player.dev === true,
     weapon: player.weapon,
     weaponSkin: player.weaponSkin,
+    petKey: player.petKey,
+    killEffectKey: player.killEffectKey,
+    evolutionEffectKey: player.evolutionEffectKey,
     showFlag: player.showFlag,
     countryCode: player.showFlag ? player.countryCode : ''
   }));
@@ -324,6 +327,9 @@ wss.on('connection', (ws) => {
     levelXp: 0,
     weapon: null,
     weaponSkin: null,
+    petKey: null,
+    killEffectKey: null,
+    evolutionEffectKey: null,
     lastTridentAttack: 0,
     lastUpdate: 0
   };
@@ -340,6 +346,28 @@ wss.on('connection', (ws) => {
       return;
     }
     if (!message || typeof message !== 'object') return;
+    if (message.type === 'cosmetic-event') {
+      const event = message.event;
+      if (!event || !['kill', 'evolution'].includes(event.kind)) return;
+      const allowed = event.kind === 'kill'
+        ? ['kill_poseidon_wake', 'kill_rift_collapse']
+        : ['evo_abyssal_bloom', 'evo_nebula_vortex'];
+      if (!allowed.includes(event.key)) return;
+      const x = Number(event.x), y = Number(event.y), radius = Number(event.radius);
+      if (![x, y, radius].every(Number.isFinite) ||
+          x < 0 || x > 50000 || y < 0 || y > 50000) return;
+      const cleanEvent = {
+        kind: event.kind, key: event.key, x, y,
+        radius: Math.max(6, Math.min(180, radius)),
+        angle: Number.isFinite(Number(event.angle)) ? Number(event.angle) : 0,
+        phase: Number.isFinite(Number(event.phase)) ? Number(event.phase) : 0,
+        swim: Number.isFinite(Number(event.swim)) ? Number(event.swim) : 0
+      };
+      for (const client of wss.clients) {
+        if (client !== ws) sendJson(client, { type: 'cosmetic-event', event: cleanEvent });
+      }
+      return;
+    }
     if (message.type === 'trident-attack') {
       const attackState = message.player;
       if (attackState && typeof attackState === 'object') {
@@ -395,6 +423,9 @@ wss.on('connection', (ws) => {
     player.dev = state.dev === true && player.accountUsername.toLowerCase() === 'vuxadev';
     player.weapon = state.weapon === 'ancient_trident' ? 'ancient_trident' : null;
     player.weaponSkin = ['skin_tidewrought', 'skin_abyssal_crown'].includes(state.weaponSkin) ? state.weaponSkin : null;
+    player.petKey = ['pet_lionfish', 'pet_blue_tang'].includes(state.petKey) ? state.petKey : null;
+    player.killEffectKey = ['kill_poseidon_wake', 'kill_rift_collapse'].includes(state.killEffectKey) ? state.killEffectKey : null;
+    player.evolutionEffectKey = ['evo_abyssal_bloom', 'evo_nebula_vortex'].includes(state.evolutionEffectKey) ? state.evolutionEffectKey : null;
     player.showFlag = state.showFlag === true && /^[A-Z]{2}$/.test(String(state.countryCode || ''));
     player.countryCode = player.showFlag ? String(state.countryCode).toUpperCase() : '';
   });
