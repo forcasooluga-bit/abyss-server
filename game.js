@@ -458,7 +458,6 @@
   function startRun() {
     if (dom.nameInput) dom.nameInput.blur();
     if (dom.pauseNameInput) dom.pauseNameInput.blur();
-    if (A.Monsters) A.Monsters.reset();
     A.Audio.init();
     A.Audio.click();
     clearOverlayTimers();
@@ -477,7 +476,6 @@
     G.popups.length = 0;
     if (A.Collection) A.Collection.reset();
     G.runTime = 0;
-    if (A.DeepSecrets) A.DeepSecrets.resetRun();
     G.eaten = 0;
     if (A.Quests) A.Quests.diveStart();
     G.flash = 0;
@@ -2830,7 +2828,6 @@
       const gain = baseGain * (p.stageIndex < A.ANGLER_TIER ? 4 : 1);
       p.xp += gain;
       G.eaten++;
-    if (A.DeepSecrets) A.DeepSecrets.onFishEaten(f);
       if (A.Quests) A.Quests.eatFish(f);
       addPopup(f.x, f.y - f.radius - 14,
         (f.predator ? (f.name || 'PREDATOR').toUpperCase() + ' SLAIN' : 'IMPALED') + ' +' + gain + ' XP',
@@ -4647,10 +4644,6 @@
   }
 
   function render() {
-    if (A.Monsters && A.Monsters.active()) {
-      A.Monsters.render(ctx);
-      return;
-    }
     const w = G.w;
     const h = G.h;
     const zoom = G.camera.zoom;
@@ -5232,13 +5225,6 @@
 
   function update(dt) {
     updateRemotePlayers(dt);
-    // The secret arena owns its own simulation while the player is inside; the
-    // reef keeps every fish, food and timer exactly where it was left.
-    if (A.Monsters && A.Monsters.active()) {
-      A.Monsters.update(dt);
-      return;
-    }
-    if (A.DeepSecrets) A.DeepSecrets.update(dt);
     G.world.update(dt, G.sim, G.camera);
     updateMotes(dt);
     updateInk(dt);
@@ -5273,7 +5259,6 @@
       updateCamera(dt);
       G.runTime += dt;
       tickHUD(dt);
-      if (A.Monsters) A.Monsters.tick();
     } else if (G.state === 'menu') {
       rebuildGrids();
       updateAI(dt);
