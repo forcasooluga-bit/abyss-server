@@ -1718,6 +1718,11 @@
   function die(killer) {
     const p = G.player;
     if (!p) return;
+    if (A.Account && A.Account.isDeveloper && A.Account.isDeveloper()) {
+      p.health = p.maxHealth;
+      p.hunger = p.maxHunger;
+      return;
+    }
     const score = Math.floor(p.xp) + G.eaten * 15;
     // The cut is taken from this run's own XP, never from the lifetime bank,
     // and the reef lets anything at or below the fast fish keep everything.
